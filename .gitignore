@@ -1,3 +1,29 @@
-target/
-logs/
+# IntelliJ IDEA
+.idea/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Compilación Java
 *.class
+
+# Directorios de build
+out/
+target/
+bin/
+build/
+
+# Logs
+*.log
+
+# Archivos temporales
+*.tmp
+
+# Sistema Windows
+Thumbs.db
+Desktop.ini
+
+# Sistema macOS
+.DS_Store
