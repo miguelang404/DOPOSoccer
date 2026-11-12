@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Configuracion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Configuracion.java</span></div><h1>Configuracion.java</h1><pre class="source lang-java linenums">package domain;
+
+import exceptions.DOPOSoccerExcepcion;
+import util.RegistroErrores;
+
+/**
+ * Las preferencias del juego: sonido, música, idioma y la resolución con la que
+ * aparece marcada la cancha al preparar un partido.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+<span class="fc" id="L13">public class Configuracion {</span>
+
+    public static final String ESPAÑOL = &quot;Español&quot;;
+    public static final String INGLES = &quot;Inglés&quot;;
+
+<span class="fc" id="L18">    private boolean sonidoActivo = true;</span>
+<span class="fc" id="L19">    private boolean musicaActiva = true;</span>
+<span class="fc" id="L20">    private String idioma = ESPAÑOL;</span>
+<span class="fc" id="L21">    private int resolucion = Cancha.MEDIANA;</span>
+
+    public boolean isSonidoActivo() {
+<span class="fc" id="L24">        return sonidoActivo;</span>
+    }
+
+    public void setSonidoActivo(boolean sonidoActivo) {
+<span class="fc" id="L28">        this.sonidoActivo = sonidoActivo;</span>
+<span class="fc" id="L29">    }</span>
+
+    public boolean isMusicaActiva() {
+<span class="fc" id="L32">        return musicaActiva;</span>
+    }
+
+    public void setMusicaActiva(boolean musicaActiva) {
+<span class="fc" id="L36">        this.musicaActiva = musicaActiva;</span>
+<span class="fc" id="L37">    }</span>
+
+    public String getIdioma() {
+<span class="fc" id="L40">        return idioma;</span>
+    }
+
+    /**
+     * Cambia el idioma.
+     *
+     * @param idioma Español o Inglés
+     * @throws DOPOSoccerExcepcion si el idioma no está disponible
+     */
+    public void setIdioma(String idioma) throws DOPOSoccerExcepcion {
+<span class="pc bpc" id="L50" title="1 of 4 branches missed.">        if (!ESPAÑOL.equals(idioma) &amp;&amp; !INGLES.equals(idioma)) {</span>
+<span class="fc" id="L51">            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.IDIOMA_INVALIDO));</span>
+        }
+<span class="fc" id="L53">        this.idioma = idioma;</span>
+<span class="fc" id="L54">    }</span>
+
+    public int getResolucion() {
+<span class="fc" id="L57">        return resolucion;</span>
+    }
+
+    /**
+     * Guarda la resolución preferida.
+     *
+     * @param resolucion Cancha.PEQUEÑA, MEDIANA o GRANDE
+     * @throws DOPOSoccerExcepcion si no existe
+     */
+    public void setResolucion(int resolucion) throws DOPOSoccerExcepcion {
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        if (resolucion &lt; 0 || resolucion &gt;= Cancha.cantidadResoluciones()) {</span>
+<span class="fc" id="L68">            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.RESOLUCION_INVALIDA));</span>
+        }
+<span class="fc" id="L70">        this.resolucion = resolucion;</span>
+<span class="fc" id="L71">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

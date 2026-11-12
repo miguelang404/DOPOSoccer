@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaPartido.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaPartido.java</span></div><h1>PantallaPartido.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Balon;
+import domain.Cancha;
+import domain.Jugador;
+import domain.Partido;
+
+import javax.swing.Timer;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.util.*;
+import java.util.List;
+
+/**
+ * La cancha en acción. Esta clase no calcula nada del juego: cada 1/60 de
+ * segundo le pasa las teclas al dominio, le pide que avance un tick y luego
+ * dibuja lo que el dominio le cuenta (jugadores, balón, marcador, poderes).
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+class PantallaPartido extends PantallaBase {
+
+    // Controles del jugador 1
+    private static final int P1_IZQUIERDA = KeyEvent.VK_A;
+    private static final int P1_DERECHA = KeyEvent.VK_D;
+    private static final int P1_SALTO = KeyEvent.VK_W;
+    private static final int P1_PATADA = KeyEvent.VK_F;
+    private static final int P1_PODER = KeyEvent.VK_G;
+    // Controles del jugador 2
+    private static final int P2_IZQUIERDA = KeyEvent.VK_LEFT;
+    private static final int P2_DERECHA = KeyEvent.VK_RIGHT;
+    private static final int P2_SALTO = KeyEvent.VK_UP;
+    private static final int P2_PATADA = KeyEvent.VK_PERIOD;
+    private static final int P2_PODER = KeyEvent.VK_COMMA;
+
+    private static final double SEGUNDO_POR_TICK = 1.0 / Partido.TICKS_POR_SEGUNDO;
+
+    /**
+     * Un papelito de confeti para celebrar los goles.
+     */
+    private static final class Confeti {
+        double x;
+        double y;
+        double vx;
+        double vy;
+        double giro;
+        Color color;
+    }
+
+<span class="nc" id="L55">    private final Set&lt;Integer&gt; teclas = new HashSet&lt;Integer&gt;();</span>
+<span class="nc" id="L56">    private final List&lt;Confeti&gt; confeti = new ArrayList&lt;Confeti&gt;();</span>
+<span class="nc" id="L57">    private final Random azar = new Random();</span>
+    private final Timer bucle;
+
+    private Partido partido;
+    private long ultimoInstante;
+    private double acumulado;
+    private int ticksEnCurso;
+<span class="nc" id="L64">    private String estadoPrevio = &quot;&quot;;</span>
+    private int cuentaPrevia;
+    private boolean patada1Previa;
+    private boolean patada2Previa;
+    private boolean poder1Previo;
+    private boolean poder2Previo;
+    private boolean efectoPrevio;
+    private double vyPrevia;
+    private boolean poderPresionado1;
+    private boolean poderPresionado2;
+
+    PantallaPartido(VentanaPrincipal ventana) {
+<span class="nc" id="L76">        super(ventana, true);</span>
+<span class="nc" id="L77">        setFocusable(true);</span>
+<span class="nc" id="L78">        addKeyListener(new KeyAdapter() {</span>
+            @Override
+            public void keyPressed(KeyEvent e) {
+<span class="nc" id="L81">                teclas.add(e.getKeyCode());</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">                if (e.getKeyCode() == KeyEvent.VK_ESCAPE || e.getKeyCode() == KeyEvent.VK_P) {</span>
+<span class="nc" id="L83">                    alternarPausa();</span>
+                }
+<span class="nc" id="L85">            }</span>
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+<span class="nc" id="L89">                teclas.remove(e.getKeyCode());</span>
+<span class="nc" id="L90">            }</span>
+        });
+<span class="nc" id="L92">        bucle = new Timer(8, e -&gt; avanzar());</span>
+<span class="nc" id="L93">    }</span>
+
+    /**
+     * Pone un partido nuevo en la pantalla y arranca el bucle.
+     *
+     * @param nuevo el partido ya creado por el dominio
+     */
+    void mostrarPartido(Partido nuevo) {
+<span class="nc" id="L101">        partido = nuevo;</span>
+<span class="nc" id="L102">        teclas.clear();</span>
+<span class="nc" id="L103">        confeti.clear();</span>
+<span class="nc" id="L104">        ticksEnCurso = 0;</span>
+<span class="nc" id="L105">        estadoPrevio = &quot;&quot;;</span>
+<span class="nc" id="L106">        cuentaPrevia = 0;</span>
+<span class="nc" id="L107">        t = 0;</span>
+<span class="nc" id="L108">        acumulado = 0;</span>
+<span class="nc" id="L109">        ultimoInstante = System.nanoTime();</span>
+<span class="nc" id="L110">        patada1Previa = false;</span>
+<span class="nc" id="L111">        patada2Previa = false;</span>
+<span class="nc" id="L112">        poder1Previo = false;</span>
+<span class="nc" id="L113">        poder2Previo = false;</span>
+<span class="nc" id="L114">        efectoPrevio = false;</span>
+<span class="nc" id="L115">    }</span>
+
+    @Override
+    void activar() {
+<span class="nc" id="L119">        super.activar();</span>
+<span class="nc" id="L120">        ultimoInstante = System.nanoTime();</span>
+<span class="nc" id="L121">        bucle.start();</span>
+<span class="nc" id="L122">    }</span>
+
+    @Override
+    void desactivar() {
+<span class="nc" id="L126">        super.desactivar();</span>
+<span class="nc" id="L127">        bucle.stop();</span>
+<span class="nc" id="L128">    }</span>
+
+    private void alternarPausa() {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (partido == null) {</span>
+<span class="nc" id="L132">            return;</span>
+        }
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (Partido.ESTADO_PAUSADO.equals(partido.getEstado())) {</span>
+<span class="nc" id="L135">            partido.reanudar();</span>
+        } else {
+<span class="nc" id="L137">            partido.pausar();</span>
+        }
+<span class="nc" id="L139">        ultimoInstante = System.nanoTime();</span>
+<span class="nc" id="L140">    }</span>
+
+    // el bucle
+
+    private void avanzar() {
+        // Recomendación de la IA generativa para el bucle del juego: paso de tiempo fijo. Se acumula el
+        // tiempo real que pasó y se ejecutan los ticks de 1/60 de segundo que quepan, con un máximo de
+        // 5 por vuelta para no congelar la ventana si el computador se atrasa.
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (partido == null) {</span>
+<span class="nc" id="L149">            return;</span>
+        }
+<span class="nc" id="L151">        long ahora = System.nanoTime();</span>
+<span class="nc" id="L152">        acumulado += Math.min(0.1, (ahora - ultimoInstante) / 1e9);</span>
+<span class="nc" id="L153">        ultimoInstante = ahora;</span>
+<span class="nc" id="L154">        int vueltas = 0;</span>
+<span class="nc bnc" id="L155" title="All 4 branches missed.">        while (acumulado &gt;= SEGUNDO_POR_TICK &amp;&amp; vueltas &lt; 5) {</span>
+<span class="nc" id="L156">            tick();</span>
+<span class="nc" id="L157">            acumulado -= SEGUNDO_POR_TICK;</span>
+<span class="nc" id="L158">            vueltas++;</span>
+        }
+<span class="nc" id="L160">        repaint();</span>
+<span class="nc" id="L161">    }</span>
+
+    private void tick() {
+<span class="nc" id="L164">        Jugador j1 = partido.getJugador1();</span>
+<span class="nc" id="L165">        Jugador j2 = partido.getJugador2();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (Partido.ESTADO_EN_CURSO.equals(partido.getEstado())) {</span>
+<span class="nc bnc" id="L167" title="All 4 branches missed.">            j1.mover((teclas.contains(P1_DERECHA) ? 1 : 0) - (teclas.contains(P1_IZQUIERDA) ? 1 : 0));</span>
+<span class="nc bnc" id="L168" title="All 4 branches missed.">            j2.mover((teclas.contains(P2_DERECHA) ? 1 : 0) - (teclas.contains(P2_IZQUIERDA) ? 1 : 0));</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            if (teclas.contains(P1_SALTO)) {</span>
+<span class="nc" id="L170">                j1.saltar();</span>
+            }
+<span class="nc bnc" id="L172" title="All 2 branches missed.">            if (teclas.contains(P2_SALTO)) {</span>
+<span class="nc" id="L173">                j2.saltar();</span>
+            }
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (teclas.contains(P1_PATADA)) {</span>
+<span class="nc" id="L176">                j1.patear();</span>
+            }
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (teclas.contains(P2_PATADA)) {</span>
+<span class="nc" id="L179">                j2.patear();</span>
+            }
+            // El poder se activa al apretar la tecla, no mientras se mantiene.
+<span class="nc" id="L182">            boolean p1 = teclas.contains(P1_PODER);</span>
+<span class="nc" id="L183">            boolean p2 = teclas.contains(P2_PODER);</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">            if (p1 &amp;&amp; !poderPresionado1) {</span>
+<span class="nc" id="L185">                j1.activarPoder();</span>
+            }
+<span class="nc bnc" id="L187" title="All 4 branches missed.">            if (p2 &amp;&amp; !poderPresionado2) {</span>
+<span class="nc" id="L188">                j2.activarPoder();</span>
+            }
+<span class="nc" id="L190">            poderPresionado1 = p1;</span>
+<span class="nc" id="L191">            poderPresionado2 = p2;</span>
+<span class="nc" id="L192">            ticksEnCurso++;</span>
+        }
+
+<span class="nc" id="L195">        double vyAntes = partido.getBalon().getVy();</span>
+<span class="nc" id="L196">        partido.actualizar();</span>
+<span class="nc" id="L197">        t++;</span>
+<span class="nc" id="L198">        sonidosYEventos(vyAntes);</span>
+
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (Partido.ESTADO_GOL.equals(partido.getEstado())) {</span>
+<span class="nc" id="L201">            moverConfeti();</span>
+<span class="nc bnc" id="L202" title="All 4 branches missed.">        } else if (!confeti.isEmpty() &amp;&amp; !Partido.ESTADO_TERMINADO.equals(partido.getEstado())) {</span>
+<span class="nc" id="L203">            confeti.clear();</span>
+        }
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (Partido.ESTADO_ABANDONADO.equals(partido.getEstado())) {</span>
+<span class="nc" id="L206">            ventana.irAPortada();</span>
+        }
+<span class="nc" id="L208">    }</span>
+
+    private void sonidosYEventos(double vyAntes) {
+<span class="nc" id="L211">        String estado = partido.getEstado();</span>
+<span class="nc" id="L212">        Jugador j1 = partido.getJugador1();</span>
+<span class="nc" id="L213">        Jugador j2 = partido.getJugador2();</span>
+<span class="nc" id="L214">        Balon b = partido.getBalon();</span>
+
+<span class="nc bnc" id="L216" title="All 4 branches missed.">        if (Partido.ESTADO_CUENTA.equals(estado) &amp;&amp; partido.getNumeroCuenta() != cuentaPrevia) {</span>
+<span class="nc" id="L217">            cuentaPrevia = partido.getNumeroCuenta();</span>
+<span class="nc" id="L218">            Sonidos.reproducir(&quot;cuenta&quot;);</span>
+        }
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (!estado.equals(estadoPrevio)) {</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">            if (Partido.ESTADO_EN_CURSO.equals(estado) &amp;&amp; Partido.ESTADO_CUENTA.equals(estadoPrevio)) {</span>
+<span class="nc" id="L222">                Sonidos.reproducir(&quot;silbato&quot;);</span>
+<span class="nc" id="L223">                ticksEnCurso = 0;</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            } else if (Partido.ESTADO_GOL.equals(estado)) {</span>
+<span class="nc" id="L225">                Sonidos.reproducir(&quot;gol&quot;);</span>
+<span class="nc" id="L226">                lanzarConfeti();</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            } else if (Partido.ESTADO_TERMINADO.equals(estado)) {</span>
+<span class="nc" id="L228">                Sonidos.reproducir(&quot;silbato&quot;);</span>
+<span class="nc" id="L229">                lanzarConfeti();</span>
+            }
+<span class="nc bnc" id="L231" title="All 4 branches missed.">            if (Partido.ESTADO_EN_CURSO.equals(estado) &amp;&amp; Partido.ESTADO_GOL.equals(estadoPrevio)) {</span>
+<span class="nc" id="L232">                cuentaPrevia = 0;</span>
+            }
+<span class="nc" id="L234">            estadoPrevio = estado;</span>
+        }
+<span class="nc bnc" id="L236" title="All 8 branches missed.">        if (j1.estaPateando() &amp;&amp; !patada1Previa || j2.estaPateando() &amp;&amp; !patada2Previa) {</span>
+<span class="nc" id="L237">            Sonidos.reproducir(&quot;patada&quot;);</span>
+        }
+<span class="nc" id="L239">        patada1Previa = j1.estaPateando();</span>
+<span class="nc" id="L240">        patada2Previa = j2.estaPateando();</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        boolean efecto = !b.getEfecto().isEmpty();</span>
+<span class="nc bnc" id="L242" title="All 12 branches missed.">        if ((efecto &amp;&amp; !efectoPrevio) || (j1.isPoderActivo() &amp;&amp; !poder1Previo) || (j2.isPoderActivo() &amp;&amp; !poder2Previo)) {</span>
+<span class="nc" id="L243">            Sonidos.reproducir(&quot;poder&quot;);</span>
+        }
+<span class="nc" id="L245">        efectoPrevio = efecto;</span>
+<span class="nc" id="L246">        poder1Previo = j1.isPoderActivo();</span>
+<span class="nc" id="L247">        poder2Previo = j2.isPoderActivo();</span>
+<span class="nc bnc" id="L248" title="All 6 branches missed.">        if (vyAntes &gt; 3 &amp;&amp; b.getVy() &lt; 0 &amp;&amp; Partido.ESTADO_EN_CURSO.equals(estado)) {</span>
+<span class="nc" id="L249">            Sonidos.reproducir(&quot;rebote&quot;);</span>
+        }
+<span class="nc" id="L251">    }</span>
+
+    private void lanzarConfeti() {
+<span class="nc" id="L254">        Color[] paleta = {Estilo.AMARILLO, Estilo.ROJO, Estilo.AZUL_CLARO, Estilo.VERDE, Color.WHITE, Estilo.NARANJA};</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        for (int i = 0; i &lt; 150; i++) {</span>
+<span class="nc" id="L256">            Confeti c = new Confeti();</span>
+<span class="nc" id="L257">            c.x = 100 + azar.nextDouble() * 800;</span>
+<span class="nc" id="L258">            c.y = -20 - azar.nextDouble() * 120;</span>
+<span class="nc" id="L259">            c.vx = (azar.nextDouble() - 0.5) * 3;</span>
+<span class="nc" id="L260">            c.vy = 1.5 + azar.nextDouble() * 3.5;</span>
+<span class="nc" id="L261">            c.giro = azar.nextDouble() * 6;</span>
+<span class="nc" id="L262">            c.color = paleta[azar.nextInt(paleta.length)];</span>
+<span class="nc" id="L263">            confeti.add(c);</span>
+        }
+<span class="nc" id="L265">    }</span>
+
+    private void moverConfeti() {
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        for (Confeti c : confeti) {</span>
+<span class="nc" id="L269">            c.x += c.vx + Math.sin(t * 0.05 + c.giro) * 0.8;</span>
+<span class="nc" id="L270">            c.y += c.vy;</span>
+<span class="nc" id="L271">            c.giro += 0.15;</span>
+<span class="nc" id="L272">        }</span>
+<span class="nc" id="L273">    }</span>
+
+    // dibujo
+
+    @Override
+    protected void pintar(Graphics2D g, double tiempo) {
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        if (partido == null) {</span>
+<span class="nc" id="L280">            return;</span>
+        }
+<span class="nc" id="L282">        double f = t;</span>
+<span class="nc" id="L283">        Jugador j1 = partido.getJugador1();</span>
+<span class="nc" id="L284">        Jugador j2 = partido.getJugador2();</span>
+<span class="nc" id="L285">        Balon balon = partido.getBalon();</span>
+<span class="nc" id="L286">        String estado = partido.getEstado();</span>
+
+        // Atrás de los jugadores: la red de los arcos ya viene en el fondo.
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        for (Balon falso : partido.getSeñuelos()) {</span>
+<span class="nc" id="L290">            DibujoBalon.dibujar(g, falso.getX(), falso.getY(), Balon.RADIO, falso.getGiro(), &quot;ILUSION&quot;,</span>
+<span class="nc" id="L291">                    falso.getVx(), falso.getVy(), f);</span>
+<span class="nc" id="L292">        }</span>
+
+<span class="nc" id="L294">        boolean alterno = j1.getPersonaje().getCodigo().equals(j2.getPersonaje().getCodigo());</span>
+<span class="nc" id="L295">        dibujarJugador(g, j1, false, f);</span>
+<span class="nc" id="L296">        dibujarJugador(g, j2, alterno, f);</span>
+<span class="nc" id="L297">        DibujoBalon.dibujar(g, balon.getX(), balon.getY(), Balon.RADIO, balon.getGiro(), balon.getEfecto(),</span>
+<span class="nc" id="L298">                balon.getVx(), balon.getVy(), f);</span>
+
+<span class="nc" id="L300">        DibujoEstadio.dibujarArco(g, partido.getPorteriaIzquierda(), true);</span>
+<span class="nc" id="L301">        DibujoEstadio.dibujarArco(g, partido.getPorteriaDerecha(), true);</span>
+
+<span class="nc" id="L303">        dibujarConfeti(g);</span>
+<span class="nc" id="L304">        dibujarMarcador(g, j1, j2, f);</span>
+
+        // Teclas de ayuda abajo
+<span class="nc" id="L307">        texto(g, &quot;J1:  A D mover · W saltar · F patear · G poder&quot;, 14, 250, 540, new Color(255, 255, 255, 190));</span>
+<span class="nc" id="L308">        texto(g, &quot;J2:  ← → mover · ↑ saltar · . patear · , poder&quot;, 14, 750, 540, new Color(255, 255, 255, 190));</span>
+<span class="nc" id="L309">        texto(g, &quot;ESC pausa&quot;, 13, 500, 540, new Color(255, 255, 255, 150));</span>
+
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (Partido.ESTADO_CUENTA.equals(estado)) {</span>
+<span class="nc" id="L312">            cuentaAtras(g, f);</span>
+<span class="nc bnc" id="L313" title="All 4 branches missed.">        } else if (Partido.ESTADO_EN_CURSO.equals(estado) &amp;&amp; ticksEnCurso &lt; 60) {</span>
+<span class="nc" id="L314">            double k = ticksEnCurso / 60.0;</span>
+<span class="nc" id="L315">            AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L316">            g.translate(500, 200);</span>
+<span class="nc" id="L317">            g.scale(1 + k * 0.6, 1 + k * 0.6);</span>
+<span class="nc" id="L318">            Estilo.textoContorno(g, &quot;¡YA!&quot;, Estilo.fuente(110), 0, 0, Estilo.AMARILLO, Estilo.NARANJA,</span>
+                    new Color(0x4A, 0x20, 0x00), 7f);
+<span class="nc" id="L320">            g.setTransform(original);</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        } else if (Partido.ESTADO_GOL.equals(estado)) {</span>
+<span class="nc" id="L322">            bannerGol(g, f);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">        } else if (Partido.ESTADO_PAUSADO.equals(estado)) {</span>
+<span class="nc" id="L324">            menuPausa(g);</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        } else if (Partido.ESTADO_TERMINADO.equals(estado)) {</span>
+<span class="nc" id="L326">            resultadoFinal(g, f);</span>
+        }
+<span class="nc" id="L328">    }</span>
+
+    private void dibujarJugador(Graphics2D g, Jugador j, boolean alterno, double f) {
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        String aura = j.isPoderActivo() ? j.getPersonaje().getPoder().getCodigo() : &quot;&quot;;</span>
+<span class="nc" id="L332">        DibujoPersonaje.dibujar(g, j.getX(), j.getY(), Cancha.SUELO, j.getPersonaje().getCodigo(), alterno,</span>
+<span class="nc" id="L333">                j.getMirando(), j.getProgresoPatada(), aura, f);</span>
+<span class="nc" id="L334">    }</span>
+
+    private void dibujarConfeti(Graphics2D g) {
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        for (Confeti c : confeti) {</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">            if (c.y &gt; Cancha.ALTO + 10) {</span>
+<span class="nc" id="L339">                continue;</span>
+            }
+<span class="nc" id="L341">            AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L342">            g.translate(c.x, c.y);</span>
+<span class="nc" id="L343">            g.rotate(c.giro);</span>
+<span class="nc" id="L344">            g.setColor(c.color);</span>
+<span class="nc" id="L345">            g.fill(new Rectangle2D.Double(-5, -3, 10, 6 * Math.abs(Math.cos(c.giro)) + 1));</span>
+<span class="nc" id="L346">            g.setTransform(original);</span>
+<span class="nc" id="L347">        }</span>
+<span class="nc" id="L348">    }</span>
+
+    // marcador
+
+    private void dibujarMarcador(Graphics2D g, Jugador j1, Jugador j2, double f) {
+        // Panel central con goles y tiempo
+<span class="nc" id="L354">        double w = 330;</span>
+<span class="nc" id="L355">        double x = 500 - w / 2;</span>
+<span class="nc" id="L356">        Estilo.panel(g, x, 6, w, 62, 30, new Color(0x10, 0x24, 0x58), Color.WHITE);</span>
+<span class="nc" id="L357">        Estilo.textoContorno(g, String.valueOf(partido.getMarcador().getGoles(j1)), Estilo.fuente(40), x + 52, 52,</span>
+                Color.WHITE, Estilo.AZUL_CLARO, Estilo.AZUL_NOCHE, 3.5f);
+<span class="nc" id="L359">        Estilo.textoContorno(g, String.valueOf(partido.getMarcador().getGoles(j2)), Estilo.fuente(40), x + w - 52, 52,</span>
+                Color.WHITE, new Color(0xFF, 0x9A, 0x9A), new Color(0x5A, 0x10, 0x10), 3.5f);
+        String reloj;
+<span class="nc" id="L362">        Color colorReloj = Color.WHITE;</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (partido.isMuerteSubita()) {</span>
+<span class="nc" id="L364">            reloj = &quot;MUERTE SÚBITA&quot;;</span>
+<span class="nc" id="L365">            colorReloj = Estilo.mezclar(Estilo.AMARILLO, 0.1 * Math.sin(f * 0.15));</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        } else if (Partido.TIPO_TIEMPO.equals(partido.getTipo())) {</span>
+<span class="nc" id="L367">            int s = partido.getSegundosRestantes();</span>
+<span class="nc" id="L368">            reloj = String.format(&quot;%d:%02d&quot;, s / 60, s % 60);</span>
+<span class="nc bnc" id="L369" title="All 6 branches missed.">            if (s &lt;= 10 &amp;&amp; Partido.ESTADO_EN_CURSO.equals(partido.getEstado()) &amp;&amp; (int) (f / 15) % 2 == 0) {</span>
+<span class="nc" id="L370">                colorReloj = Estilo.ROJO;</span>
+            }
+<span class="nc" id="L372">        } else {</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">            reloj = &quot;A &quot; + partido.getGolesParaGanar() + (partido.getGolesParaGanar() == 1 ? &quot; GOL&quot; : &quot; GOLES&quot;);</span>
+        }
+<span class="nc bnc" id="L375" title="All 4 branches missed.">        Estilo.textoCentrado(g, reloj, Estilo.fuente(partido.isMuerteSubita() ? 19 : 30), 500, partido.isMuerteSubita() ? 44 : 49,</span>
+                colorReloj);
+<span class="nc bnc" id="L377" title="All 4 branches missed.">        if (Partido.TIPO_GOLES.equals(partido.getTipo()) &amp;&amp; !partido.isMuerteSubita()) {</span>
+<span class="nc" id="L378">            int s = partido.getSegundosJugados();</span>
+<span class="nc" id="L379">            Estilo.textoCentrado(g, String.format(&quot;%d:%02d&quot;, s / 60, s % 60), Estilo.fuenteTexto(14), 500, 63,</span>
+                    new Color(0xBF, 0xD6, 0xFF));
+        }
+
+        // Banderas y barras de poder a cada lado
+<span class="nc" id="L384">        lado(g, j1, 16, false, Estilo.AZUL_CLARO, f);</span>
+<span class="nc" id="L385">        lado(g, j2, Cancha.ANCHO - 16, true, Estilo.ROJO, f);</span>
+<span class="nc" id="L386">    }</span>
+
+    private void lado(Graphics2D g, Jugador j, double borde, boolean derecha, Color color, double f) {
+<span class="nc" id="L389">        double wBandera = 56;</span>
+<span class="nc" id="L390">        double hBandera = 38;</span>
+<span class="nc" id="L391">        double wBarra = 232;</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        double xBandera = derecha ? borde - wBandera : borde;</span>
+<span class="nc" id="L393">        DibujoBandera.dibujar(g, j.getPersonaje().getCodigo(), xBandera, 12, wBandera, hBandera);</span>
+<span class="nc" id="L394">        g.setColor(Color.WHITE);</span>
+<span class="nc" id="L395">        g.setStroke(new BasicStroke(2.5f));</span>
+<span class="nc" id="L396">        g.draw(new RoundRectangle2D.Double(xBandera, 12, wBandera, hBandera, 4, 4));</span>
+
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        double xBarra = derecha ? xBandera - 12 - wBarra : xBandera + wBandera + 12;</span>
+<span class="nc" id="L399">        double yBarra = 24;</span>
+<span class="nc" id="L400">        double hBarra = 20;</span>
+<span class="nc bnc" id="L401" title="All 4 branches missed.">        boolean listo = j.getPoder() &gt;= Jugador.PODER_MAXIMO &amp;&amp; !j.isPoderActivo();</span>
+        // marco
+<span class="nc" id="L403">        g.setColor(new Color(0, 0, 0, 120));</span>
+<span class="nc" id="L404">        g.fill(new RoundRectangle2D.Double(xBarra - 3, yBarra - 3, wBarra + 6, hBarra + 6, 20, 20));</span>
+<span class="nc" id="L405">        g.setColor(new Color(0x14, 0x1C, 0x38));</span>
+<span class="nc" id="L406">        g.fill(new RoundRectangle2D.Double(xBarra, yBarra, wBarra, hBarra, 16, 16));</span>
+<span class="nc" id="L407">        double proporcion = Math.max(0, Math.min(1, j.getPoder() / Jugador.PODER_MAXIMO));</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        if (proporcion &gt; 0) {</span>
+<span class="nc" id="L409">            double relleno = Math.max(hBarra, wBarra * proporcion);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">            double xr = derecha ? xBarra + wBarra - relleno : xBarra;</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">            Color c1 = listo ? Estilo.AMARILLO : color;</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">            Color c2 = listo ? Estilo.NARANJA : Estilo.mezclar(color, -0.25);</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">            if (listo) {</span>
+<span class="nc" id="L414">                double pulso = 0.5 + 0.5 * Math.sin(f * 0.25);</span>
+<span class="nc" id="L415">                c1 = Estilo.mezclar(c1, 0.2 * pulso);</span>
+            }
+<span class="nc" id="L417">            g.setPaint(new java.awt.GradientPaint(0, (float) yBarra, c1, 0, (float) (yBarra + hBarra), c2));</span>
+<span class="nc" id="L418">            g.fill(new RoundRectangle2D.Double(xr, yBarra, relleno, hBarra, 16, 16));</span>
+<span class="nc" id="L419">            g.setColor(new Color(255, 255, 255, 90));</span>
+<span class="nc" id="L420">            g.fill(new RoundRectangle2D.Double(xr + 4, yBarra + 2, relleno - 8, hBarra * 0.35, 8, 8));</span>
+        }
+<span class="nc" id="L422">        g.setColor(Color.WHITE);</span>
+<span class="nc" id="L423">        g.setStroke(new BasicStroke(2f));</span>
+<span class="nc" id="L424">        g.draw(new RoundRectangle2D.Double(xBarra, yBarra, wBarra, hBarra, 16, 16));</span>
+        String etiqueta;
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        if (j.isPoderActivo()) {</span>
+<span class="nc" id="L427">            etiqueta = &quot;¡PODER ACTIVO!&quot;;</span>
+<span class="nc bnc" id="L428" title="All 2 branches missed.">        } else if (listo) {</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">            etiqueta = derecha ? &quot;¡LISTO!  [ , ]&quot; : &quot;¡LISTO!  [ G ]&quot;;</span>
+        } else {
+<span class="nc" id="L431">            etiqueta = &quot;PODER &quot; + (int) (proporcion * 100) + &quot;%&quot;;</span>
+        }
+<span class="nc" id="L433">        Estilo.textoCentrado(g, etiqueta, Estilo.fuente(13), xBarra + wBarra / 2, yBarra + hBarra - 5, Color.WHITE);</span>
+<span class="nc" id="L434">        Estilo.textoCentrado(g, j.getPersonaje().getPais(), Estilo.fuenteTexto(14), xBarra + wBarra / 2, yBarra + hBarra + 18,</span>
+                new Color(255, 255, 255, 230));
+<span class="nc" id="L436">    }</span>
+
+    // mensajes grandes
+
+    private void cuentaAtras(Graphics2D g, double f) {
+<span class="nc" id="L441">        int n = partido.getNumeroCuenta();</span>
+<span class="nc" id="L442">        double fase = (partido.getTicksCuenta() % Partido.TICKS_POR_SEGUNDO) / (double) Partido.TICKS_POR_SEGUNDO;</span>
+<span class="nc" id="L443">        double escala = 1 + fase * 0.5;</span>
+<span class="nc" id="L444">        AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L445">        g.translate(500, 240);</span>
+<span class="nc" id="L446">        g.scale(escala, escala);</span>
+<span class="nc" id="L447">        Estilo.textoContorno(g, String.valueOf(n), Estilo.fuente(150), 0, 0, Color.WHITE, Estilo.AZUL_CLARO,</span>
+                Estilo.AZUL_NOCHE, 8f);
+<span class="nc" id="L449">        g.setTransform(original);</span>
+<span class="nc" id="L450">        Estilo.textoCentrado(g, partido.getJugador1().getPersonaje().getPais() + &quot;  vs  &quot;</span>
+<span class="nc" id="L451">                + partido.getJugador2().getPersonaje().getPais(), Estilo.fuente(26), 500, 300, Color.WHITE);</span>
+<span class="nc" id="L452">    }</span>
+
+    private void bannerGol(Graphics2D g, double f) {
+<span class="nc" id="L455">        double k = 1 - partido.getTicksCelebracion() / (double) Partido.TICKS_CELEBRACION;</span>
+<span class="nc" id="L456">        double entrada = Math.min(1, k * 5);</span>
+<span class="nc" id="L457">        double escala = 0.4 + entrada * 0.6 + Math.sin(f * 0.25) * 0.03;</span>
+<span class="nc" id="L458">        AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L459">        g.translate(500, 215);</span>
+<span class="nc" id="L460">        g.scale(escala, escala);</span>
+<span class="nc" id="L461">        Estilo.textoContorno(g, &quot;¡GOOOL!&quot;, Estilo.fuente(120), 0, 0, Estilo.AMARILLO, Estilo.NARANJA,</span>
+                new Color(0x4A, 0x20, 0x00), 8f);
+<span class="nc" id="L463">        g.setTransform(original);</span>
+<span class="nc" id="L464">        Jugador a = partido.getUltimoAnotador();</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        if (a != null) {</span>
+<span class="nc" id="L466">            Estilo.textoCentrado(g, a.getNombre() + &quot;  ·  &quot; + a.getPersonaje().getPais(), Estilo.fuente(28), 500, 280,</span>
+                    Color.WHITE);
+        }
+<span class="nc bnc" id="L469" title="All 4 branches missed.">        if (partido.isMuerteSubita() || Partido.ESTADO_GOL.equals(partido.getEstado())) {</span>
+            // nada más: el dominio decide si el partido sigue o termina
+        }
+<span class="nc" id="L472">    }</span>
+
+    private void menuPausa(Graphics2D g) {
+<span class="nc" id="L475">        velo(g, 150);</span>
+<span class="nc" id="L476">        tarjeta(g, 300, 120, 400, 300, Estilo.AMARILLO, true);</span>
+<span class="nc" id="L477">        Estilo.textoContorno(g, &quot;PAUSA&quot;, Estilo.fuente(64), 500, 205, Estilo.AMARILLO, Estilo.NARANJA,</span>
+                new Color(0x4A, 0x20, 0x00), 5f);
+<span class="nc" id="L479">        boton(g, &quot;CONTINUAR&quot;, Estilo.VERDE, 350, 245, 300, 56, true, this::alternarPausa);</span>
+<span class="nc" id="L480">        boton(g, &quot;SALIR AL MENÚ&quot;, Estilo.ROJO, 350, 320, 300, 56, true, () -&gt; {</span>
+<span class="nc" id="L481">            partido.abandonar();</span>
+<span class="nc" id="L482">            ventana.irAPortada();</span>
+<span class="nc" id="L483">        });</span>
+<span class="nc" id="L484">    }</span>
+
+    private void resultadoFinal(Graphics2D g, double f) {
+<span class="nc" id="L487">        velo(g, 120);</span>
+<span class="nc" id="L488">        tarjeta(g, 190, 80, 620, 390, Estilo.AMARILLO, true);</span>
+<span class="nc" id="L489">        Jugador ganador = partido.getGanador();</span>
+<span class="nc" id="L490">        Jugador j1 = partido.getJugador1();</span>
+<span class="nc" id="L491">        Jugador j2 = partido.getJugador2();</span>
+<span class="nc" id="L492">        Estilo.textoContorno(g, &quot;¡FIN DEL PARTIDO!&quot;, Estilo.fuente(44), 500, 146, Estilo.AMARILLO, Estilo.NARANJA,</span>
+                new Color(0x4A, 0x20, 0x00), 4f);
+<span class="nc bnc" id="L494" title="All 2 branches missed.">        String quien = ganador == null ? &quot;EMPATE&quot; : &quot;GANA &quot; + ganador.getNombre().toUpperCase();</span>
+<span class="nc" id="L495">        Estilo.textoCentrado(g, quien, Estilo.fuente(30), 500, 190, Color.WHITE);</span>
+
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        columnaResultado(g, j1, 340, Estilo.AZUL_CLARO, ganador == j1, f);</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        columnaResultado(g, j2, 660, Estilo.ROJO, ganador == j2, f);</span>
+<span class="nc" id="L499">        Estilo.textoContorno(g, partido.getMarcador().getGoles(j1) + &quot; - &quot; + partido.getMarcador().getGoles(j2),</span>
+<span class="nc" id="L500">                Estilo.fuente(64), 500, 330, Color.WHITE, Estilo.AZUL_CLARO, Estilo.AZUL_NOCHE, 5f);</span>
+
+<span class="nc" id="L502">        boton(g, &quot;REVANCHA&quot;, Estilo.VERDE, 240, 392, 240, 56, true, ventana::iniciarPartido);</span>
+<span class="nc" id="L503">        boton(g, &quot;MENÚ&quot;, Estilo.AZUL, 520, 392, 240, 56, true, ventana::irAPortada);</span>
+<span class="nc" id="L504">    }</span>
+
+    private void columnaResultado(Graphics2D g, Jugador j, double cx, Color color, boolean gano, double f) {
+<span class="nc" id="L507">        AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L508">        g.translate(cx, 214);</span>
+<span class="nc" id="L509">        g.scale(0.62, 0.62);</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">        double brinco = gano ? Math.abs(Math.sin(f * 0.12)) * 16 : 0;</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">        boolean alterno = j == partido.getJugador2()</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">                &amp;&amp; j.getPersonaje().getCodigo().equals(partido.getJugador1().getPersonaje().getCodigo());</span>
+<span class="nc" id="L513">        DibujoPersonaje.dibujarGrande(g, 0, 60 - brinco, 150, j.getPersonaje().getCodigo(), alterno,</span>
+<span class="nc bnc" id="L514" title="All 2 branches missed.">                j == partido.getJugador1() ? 1 : -1, 0, &quot;&quot;, f);</span>
+<span class="nc" id="L515">        g.setTransform(original);</span>
+<span class="nc" id="L516">        Estilo.textoCentrado(g, j.getPersonaje().getPais(), Estilo.fuente(18), cx, 322, color);</span>
+<span class="nc" id="L517">        Estilo.textoCentrado(g, &quot;+&quot; + partido.getPuntosGanados(j) + &quot; puntos&quot;, Estilo.fuente(20), cx, 352,</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">                gano ? Estilo.AMARILLO : new Color(0xBF, 0xD6, 0xFF));</span>
+<span class="nc" id="L519">        texto(g, &quot;Total: &quot; + j.getPuntos(), 15, cx, 374, new Color(0xD8, 0xE6, 0xFF));</span>
+<span class="nc" id="L520">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

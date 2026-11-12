@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RegistroErrores.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">util</a> &gt; <span class="el_source">RegistroErrores.java</span></div><h1>RegistroErrores.java</h1><pre class="source lang-java linenums">package util;
+import exceptions.DOPOSoccerExcepcion;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Bitácora de errores para los programadores. Cada vez que algo sale mal se
+ * escribe una línea en el archivo logs/errores.log con la fecha, el lugar y el
+ * detalle técnico. El jugador solo ve el mensaje amable; esto es para nosotros.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class RegistroErrores {
+
+<span class="fc" id="L23">    private static Path archivo = Paths.get(&quot;logs&quot;, &quot;errores.log&quot;);</span>
+<span class="fc" id="L24">    private static boolean activo = true;</span>
+
+    private RegistroErrores() {
+        // Clase de utilidad: no se crean objetos de ella.
+    }
+
+    /**
+     * Cambia el archivo donde se guarda el registro (las pruebas lo usan para
+     * no ensuciar el log real).
+     *
+     * @param ruta ruta del nuevo archivo
+     */
+    public static void setArchivo(String ruta) {
+<span class="fc" id="L37">        archivo = Paths.get(ruta);</span>
+<span class="fc" id="L38">    }</span>
+
+    /**
+     * Apaga o enciende el registro.
+     *
+     * @param valor true para escribir en el archivo
+     */
+    public static void setActivo(boolean valor) {
+<span class="fc" id="L46">        activo = valor;</span>
+<span class="fc" id="L47">    }</span>
+
+    /**
+     * Guarda una excepción del juego en el log y la devuelve, para poder
+     * escribir directamente: throw RegistroErrores.registrar(new ...).
+     *
+     * @param error la excepción que ocurrió
+     * @return la misma excepción
+     */
+    public static DOPOSoccerExcepcion registrar(DOPOSoccerExcepcion error) {
+<span class="fc" id="L57">        escribir(&quot;JUEGO&quot;, error);</span>
+<span class="fc" id="L58">        return error;</span>
+    }
+
+    /**
+     * Guarda cualquier otro error inesperado (por ejemplo de la interfaz).
+     *
+     * @param contexto dónde pasó
+     * @param error    lo que pasó
+     */
+    public static void registrar(String contexto, Throwable error) {
+<span class="nc" id="L68">        escribir(contexto, error);</span>
+<span class="nc" id="L69">    }</span>
+
+    private static void escribir(String contexto, Throwable error) {
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (!activo) {</span>
+<span class="fc" id="L73">            return;</span>
+        }
+<span class="fc" id="L75">        String hora = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="fc" id="L76">        String linea = hora + &quot; | &quot; + contexto + &quot; | &quot; + error.getClass().getSimpleName()</span>
+<span class="fc" id="L77">                + &quot; | &quot; + error.getMessage() + System.lineSeparator();</span>
+        try {
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            if (archivo.getParent() != null) {</span>
+<span class="fc" id="L80">                Files.createDirectories(archivo.getParent());</span>
+            }
+<span class="fc" id="L82">            Files.write(archivo, linea.getBytes(StandardCharsets.UTF_8),</span>
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+<span class="nc" id="L84">        } catch (IOException e) {</span>
+            // Si ni siquiera se puede escribir el log, al menos lo mostramos en consola.
+<span class="nc" id="L86">            System.err.println(&quot;No pude guardar el log: &quot; + e.getMessage());</span>
+<span class="nc" id="L87">            System.err.println(linea);</span>
+<span class="fc" id="L88">        }</span>
+<span class="fc" id="L89">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

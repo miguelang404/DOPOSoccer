@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Cancha.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Cancha.java</span></div><h1>Cancha.java</h1><pre class="source lang-java linenums">package domain;
+
+import exceptions.DOPOSoccerExcepcion;
+import util.RegistroErrores;
+/**
+ * La cancha donde se juega. Toda la física del juego ocurre en un campo &quot;lógico&quot;
+ * de 1000 x 560 unidades; la resolución (pequeña, mediana o grande) solo cambia
+ * el tamaño de la ventana, así el partido se juega igual en cualquiera de las tres.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class Cancha {
+
+    /** Ancho del campo lógico. */
+    public static final int ANCHO = 1000;
+    /** Alto del campo lógico. */
+    public static final int ALTO = 560;
+    /** Altura (y) del piso. */
+    public static final int SUELO = 480;
+    /** Gravedad que afecta al balón en cada tick. */
+    public static final double GRAVEDAD = 0.40;
+    /** Gravedad que afecta a los jugadores en cada tick. */
+    public static final double GRAVEDAD_JUGADOR = 0.85;
+    /** Ancho de cada arco. */
+    public static final int PORTERIA_ANCHO = 96;
+    /** Alto de cada arco. */
+    public static final int PORTERIA_ALTO = 170;
+
+    public static final int PEQUEÑA = 0;
+    public static final int MEDIANA = 1;
+    public static final int GRANDE = 2;
+
+<span class="fc" id="L34">    private static final String[] NOMBRES = {&quot;Pequeña&quot;, &quot;Mediana&quot;, &quot;Grande&quot;};</span>
+<span class="fc" id="L35">    private static final int[] ANCHOS = {800, 1000, 1280};</span>
+<span class="fc" id="L36">    private static final int[] ALTOS = {450, 563, 720};</span>
+
+    private final int resolucion;
+
+    /**
+     * Crea la cancha con una de las tres resoluciones.
+     *
+     * @param resolucion PEQUEÑA, MEDIANA o GRANDE
+     * @throws DOPOSoccerExcepcion si la resolución no existe
+     */
+<span class="fc" id="L46">    public Cancha(int resolucion) throws DOPOSoccerExcepcion {</span>
+<span class="fc bfc" id="L47" title="All 4 branches covered.">        if (resolucion &lt; 0 || resolucion &gt;= NOMBRES.length) {</span>
+<span class="fc" id="L48">            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.RESOLUCION_INVALIDA));</span>
+        }
+<span class="fc" id="L50">        this.resolucion = resolucion;</span>
+<span class="fc" id="L51">    }</span>
+
+    /** @return cuántas resoluciones tiene el juego */
+    public static int cantidadResoluciones() {
+<span class="fc" id="L55">        return NOMBRES.length;</span>
+    }
+
+    /**
+     * @param indice número de la resolución
+     * @return su nombre (Pequeña, Mediana o Grande)
+     */
+    public static String nombreResolucion(int indice) {
+<span class="nc" id="L63">        return NOMBRES[indice];</span>
+    }
+
+    /**
+     * @param indice número de la resolución
+     * @return el ancho de la ventana en píxeles
+     */
+    public static int anchoPantalla(int indice) {
+<span class="nc" id="L71">        return ANCHOS[indice];</span>
+    }
+
+    /**
+     * @param indice número de la resolución
+     * @return el alto de la ventana en píxeles
+     */
+    public static int altoPantalla(int indice) {
+<span class="nc" id="L79">        return ALTOS[indice];</span>
+    }
+
+    /** @return el índice de la resolución de esta cancha */
+    public int getResolucion() {
+<span class="fc" id="L84">        return resolucion;</span>
+    }
+
+    /** @return nombre de la resolución de esta cancha */
+    public String getNombreResolucion() {
+<span class="fc" id="L89">        return NOMBRES[resolucion];</span>
+    }
+
+    /** @return ancho en píxeles de la ventana de esta cancha */
+    public int getAnchoPantalla() {
+<span class="fc" id="L94">        return ANCHOS[resolucion];</span>
+    }
+
+    /** @return alto en píxeles de la ventana de esta cancha */
+    public int getAltoPantalla() {
+<span class="fc" id="L99">        return ALTOS[resolucion];</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

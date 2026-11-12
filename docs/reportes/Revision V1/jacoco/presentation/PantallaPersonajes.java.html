@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaPersonajes.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaPersonajes.java</span></div><h1>PantallaPersonajes.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Personaje;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.RoundRectangle2D;
+
+/**
+ * Cada jugador elige a su personaje. Se puede con el mouse o con el teclado:
+ * A y D para el jugador 1, las flechas para el jugador 2.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+class PantallaPersonajes extends PantallaBase {
+
+    PantallaPersonajes(VentanaPrincipal ventana) {
+<span class="nc" id="L23">        super(ventana, false);</span>
+<span class="nc" id="L24">        atajo(&quot;A&quot;, 0, -1);</span>
+<span class="nc" id="L25">        atajo(&quot;D&quot;, 0, 1);</span>
+<span class="nc" id="L26">        atajo(&quot;LEFT&quot;, 1, -1);</span>
+<span class="nc" id="L27">        atajo(&quot;RIGHT&quot;, 1, 1);</span>
+<span class="nc" id="L28">        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), &quot;volver&quot;);</span>
+<span class="nc" id="L29">        getActionMap().put(&quot;volver&quot;, new AbstractAction() {</span>
+            @Override
+            public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L32">                ventana.irAModalidad();</span>
+<span class="nc" id="L33">            }</span>
+        });
+<span class="nc" id="L35">    }</span>
+
+    private void atajo(String tecla, final int jugador, final int paso) {
+<span class="nc" id="L38">        String clave = &quot;mover&quot; + tecla;</span>
+<span class="nc" id="L39">        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(tecla), clave);</span>
+<span class="nc" id="L40">        getActionMap().put(clave, new AbstractAction() {</span>
+            @Override
+            public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L43">                int n = ventana.getJuego().getPersonajes().length;</span>
+<span class="nc" id="L44">                ventana.elegirPersonaje(jugador, (ventana.getPersonajeElegido(jugador) + paso + n) % n);</span>
+<span class="nc" id="L45">            }</span>
+        });
+<span class="nc" id="L47">    }</span>
+
+    @Override
+    protected void pintar(Graphics2D g, double t) {
+<span class="nc" id="L51">        velo(g, 130);</span>
+<span class="nc" id="L52">        titulo(g, &quot;ELIGE TU PERSONAJE&quot;, 78);</span>
+<span class="nc" id="L53">        panelJugador(g, 0, 40, Estilo.AZUL_CLARO, &quot;JUGADOR 1&quot;, &quot;A  /  D&quot;, t);</span>
+<span class="nc" id="L54">        panelJugador(g, 1, 520, Estilo.ROJO, &quot;JUGADOR 2&quot;, &quot;←  /  →&quot;, t);</span>
+<span class="nc" id="L55">        boton(g, &quot;VOLVER&quot;, Estilo.ROJO, 40, 488, 200, 56, true, ventana::irAModalidad);</span>
+<span class="nc" id="L56">        boton(g, &quot;CONTINUAR&quot;, Estilo.VERDE, 740, 488, 220, 56, true, ventana::irAConfigPartido);</span>
+<span class="nc" id="L57">    }</span>
+
+    private void panelJugador(Graphics2D g, int jugador, double x, Color color, String titulo, String teclas, double t) {
+<span class="nc" id="L60">        double w = 440;</span>
+<span class="nc" id="L61">        double y = 96;</span>
+<span class="nc" id="L62">        double h = 380;</span>
+<span class="nc" id="L63">        tarjeta(g, x, y, w, h, color, false);</span>
+<span class="nc" id="L64">        Personaje[] lista = ventana.getJuego().getPersonajes();</span>
+<span class="nc" id="L65">        int elegido = ventana.getPersonajeElegido(jugador);</span>
+<span class="nc" id="L66">        Personaje p = lista[elegido];</span>
+<span class="nc" id="L67">        double cx = x + w / 2;</span>
+
+<span class="nc" id="L69">        Estilo.textoCentrado(g, titulo, Estilo.fuente(26), cx, y + 36, color);</span>
+<span class="nc" id="L70">        texto(g, &quot;Teclas: &quot; + teclas, 14, cx, y + 56, new Color(0xBF, 0xD6, 0xFF));</span>
+
+        // Vitrina con el personaje en grande
+<span class="nc" id="L73">        g.setPaint(new java.awt.RadialGradientPaint((float) cx, (float) (y + 150), 130f, new float[]{0f, 1f},</span>
+<span class="nc" id="L74">                new Color[]{Estilo.conAlfa(color, 110), Estilo.conAlfa(color, 0)}));</span>
+<span class="nc" id="L75">        g.fill(new Ellipse2D.Double(cx - 130, y + 10, 260, 260));</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">        boolean alterno = jugador == 1 &amp;&amp; ventana.getPersonajeElegido(0) == elegido;</span>
+<span class="nc" id="L77">        AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L78">        g.translate(cx, y + 62);</span>
+<span class="nc" id="L79">        g.scale(1.0, 1.0);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        double mirada = jugador == 0 ? 1 : -1;</span>
+<span class="nc" id="L81">        DibujoPersonaje.dibujarGrande(g, 0, 48 + Math.sin(t * 0.08) * 3, 168, p.getCodigo(), alterno, (int) mirada, 0,</span>
+<span class="nc" id="L82">                p.getPoder().getCodigo(), t);</span>
+<span class="nc" id="L83">        g.setTransform(original);</span>
+
+        // Bandera y nombre
+<span class="nc" id="L86">        DibujoBandera.dibujar(g, p.getCodigo(), x + 22, y + 22, 54, 36);</span>
+<span class="nc" id="L87">        Estilo.textoCentrado(g, p.getPais().toUpperCase(), Estilo.fuente(30), cx, y + 254, Color.WHITE);</span>
+<span class="nc" id="L88">        Estilo.textoCentrado(g, &quot;Poder: &quot; + p.getPoder().getNombre(), Estilo.fuente(20), cx, y + 278,</span>
+<span class="nc" id="L89">                Estilo.mezclar(DibujoBalon.colorEfecto(p.getPoder().getCodigo()), 0.35));</span>
+<span class="nc" id="L90">        Font f = Estilo.fuenteTexto(15);</span>
+<span class="nc" id="L91">        g.setFont(f);</span>
+<span class="nc" id="L92">        int linea = 0;</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        for (String l : partir(g, p.getPoder().getDescripcion(), f, w - 60)) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (linea &lt; 2) {</span>
+<span class="nc" id="L95">                texto(g, l, 15, cx, y + 300 + linea * 18, new Color(0xD8, 0xE6, 0xFF));</span>
+            }
+<span class="nc" id="L97">            linea++;</span>
+<span class="nc" id="L98">        }</span>
+
+        // Selector con las cuatro banderas
+<span class="nc" id="L101">        double tam = 72;</span>
+<span class="nc" id="L102">        double sep = 14;</span>
+<span class="nc" id="L103">        double inicio = cx - (lista.length * tam + (lista.length - 1) * sep) / 2;</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (int i = 0; i &lt; lista.length; i++) {</span>
+<span class="nc" id="L105">            final int indice = i;</span>
+<span class="nc" id="L106">            double bx = inicio + i * (tam + sep);</span>
+<span class="nc" id="L107">            double by = y + h - 34;</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            boolean sel = i == elegido;</span>
+<span class="nc" id="L109">            boolean hover = zona(bx, by - 22, tam, 54, () -&gt; ventana.elegirPersonaje(jugador, indice));</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (sel) {</span>
+<span class="nc" id="L111">                g.setColor(Estilo.conAlfa(color, 130));</span>
+<span class="nc" id="L112">                g.fill(new RoundRectangle2D.Double(bx - 6, by - 28, tam + 12, 66, 18, 18));</span>
+            }
+<span class="nc" id="L114">            DibujoBandera.dibujar(g, lista[i].getCodigo(), bx + 6, by - 18, tam - 12, 46 - 8);</span>
+<span class="nc bnc" id="L115" title="All 4 branches missed.">            g.setColor(sel ? Color.WHITE : (hover ? Estilo.AMARILLO : new Color(255, 255, 255, 120)));</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            g.setStroke(new java.awt.BasicStroke(sel ? 4f : 2f));</span>
+<span class="nc" id="L117">            g.draw(new RoundRectangle2D.Double(bx + 5, by - 19, tam - 10, 40, 6, 6));</span>
+        }
+<span class="nc" id="L119">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

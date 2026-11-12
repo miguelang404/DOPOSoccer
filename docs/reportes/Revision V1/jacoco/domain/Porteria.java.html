@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Porteria.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Porteria.java</span></div><h1>Porteria.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Cada uno de los dos arcos. Sabe dónde está, si el balón ya entró (gol) y
+ * hace que el balón rebote en el travesaño.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class Porteria {
+
+    public static final String IZQUIERDA = &quot;IZQUIERDA&quot;;
+    public static final String DERECHA = &quot;DERECHA&quot;;
+
+    /** Grueso del travesaño (la barra de arriba). */
+    public static final int GROSOR = 14;
+
+    private final String lado;
+    private final int ancho;
+    private final int alto;
+
+    /**
+     * Crea el arco de uno de los dos lados.
+     *
+     * @param lado IZQUIERDA o DERECHA
+     */
+<span class="fc" id="L27">    public Porteria(String lado) {</span>
+<span class="fc" id="L28">        this.lado = lado;</span>
+<span class="fc" id="L29">        this.ancho = Cancha.PORTERIA_ANCHO;</span>
+<span class="fc" id="L30">        this.alto = Cancha.PORTERIA_ALTO;</span>
+<span class="fc" id="L31">    }</span>
+
+    /** @return IZQUIERDA o DERECHA */
+    public String getLado() {
+<span class="nc" id="L35">        return lado;</span>
+    }
+
+    public int getAncho() {
+<span class="nc" id="L39">        return ancho;</span>
+    }
+
+    public int getAlto() {
+<span class="nc" id="L43">        return alto;</span>
+    }
+
+    /** @return x donde empieza el arco */
+    public int getXInicio() {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        return IZQUIERDA.equals(lado) ? 0 : Cancha.ANCHO - ancho;</span>
+    }
+
+    /** @return x donde termina el arco */
+    public int getXFin() {
+<span class="fc" id="L53">        return getXInicio() + ancho;</span>
+    }
+
+    /** @return y de la parte de arriba del travesaño */
+    public int getYTravesaño() {
+<span class="fc" id="L58">        return Cancha.SUELO - alto;</span>
+    }
+
+    /**
+     * Revisa si el balón ya entró completo al arco y por debajo del travesaño.
+     *
+     * @param balon el balón
+     * @return true si es gol
+     */
+    public boolean esGol(Balon balon) {
+        boolean dentro;
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (IZQUIERDA.equals(lado)) {</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">            dentro = balon.getX() + Balon.RADIO &lt; getXFin();</span>
+        } else {
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            dentro = balon.getX() - Balon.RADIO &gt; getXInicio();</span>
+        }
+<span class="fc bfc" id="L74" title="All 4 branches covered.">        return dentro &amp;&amp; balon.getY() &gt; getYTravesaño() + GROSOR;</span>
+    }
+
+    /**
+     * Hace rebotar el balón contra el travesaño (un rectángulo).
+     *
+     * @param balon el balón
+     * @return true si el balón está apoyado encima del travesaño
+     */
+    public boolean rebotar(Balon balon) {
+        // Recomendación de la IA generativa para el rebote en el travesaño: se busca el punto del
+        // rectángulo más cercano al centro del balón y, si está a menos de un radio, se rebota respecto
+        // a la dirección que une los dos puntos.
+<span class="fc" id="L87">        double x0 = getXInicio();</span>
+<span class="fc" id="L88">        double x1 = getXFin();</span>
+<span class="fc" id="L89">        double y0 = getYTravesaño();</span>
+<span class="fc" id="L90">        double y1 = y0 + GROSOR;</span>
+
+        // Punto del rectángulo más cercano al centro del balón
+<span class="fc" id="L93">        double cx = Math.max(x0, Math.min(balon.getX(), x1));</span>
+<span class="fc" id="L94">        double cy = Math.max(y0, Math.min(balon.getY(), y1));</span>
+<span class="fc" id="L95">        double dx = balon.getX() - cx;</span>
+<span class="fc" id="L96">        double dy = balon.getY() - cy;</span>
+<span class="fc" id="L97">        double distancia2 = dx * dx + dy * dy;</span>
+
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (distancia2 &gt;= (double) Balon.RADIO * Balon.RADIO) {</span>
+<span class="fc" id="L100">            return false;</span>
+        }
+<span class="fc" id="L102">        balon.terminarEfecto();   // pegarle al travesaño acaba el poder</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (distancia2 == 0) {</span>
+            // El centro quedó dentro de la barra: lo sacamos por arriba.
+<span class="nc" id="L105">            balon.setPosicion(balon.getX(), y0 - Balon.RADIO);</span>
+<span class="nc" id="L106">            balon.setVelocidad(balon.getVx(), -Math.abs(balon.getVy()) * 0.5);</span>
+<span class="nc" id="L107">            return true;</span>
+        }
+<span class="fc" id="L109">        double distancia = Math.sqrt(distancia2);</span>
+<span class="fc" id="L110">        double nx = dx / distancia;</span>
+<span class="fc" id="L111">        double ny = dy / distancia;</span>
+<span class="fc" id="L112">        balon.setPosicion(cx + nx * Balon.RADIO, cy + ny * Balon.RADIO);</span>
+
+<span class="fc" id="L114">        double normal = balon.getVx() * nx + balon.getVy() * ny;</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (normal &lt; 0) {</span>
+<span class="fc" id="L116">            balon.setVelocidad(balon.getVx() - 1.7 * normal * nx,</span>
+<span class="fc" id="L117">                               balon.getVy() - 1.7 * normal * ny);</span>
+        }
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        return ny &lt; -0.7;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

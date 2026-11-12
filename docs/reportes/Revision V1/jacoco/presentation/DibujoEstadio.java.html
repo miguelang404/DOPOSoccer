@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DibujoEstadio.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">DibujoEstadio.java</span></div><h1>DibujoEstadio.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Cancha;
+import domain.Porteria;
+
+import java.awt.*;
+import java.awt.geom.*;
+import java.awt.image.BufferedImage;
+import java.util.Random;
+
+/**
+ * Dibuja el estadio: cielo, gradas con público, vallas de publicidad, pasto y
+ * los dos arcos. El fondo se pinta una sola vez en una imagen y luego solo se
+ * copia en cada cuadro, así el juego va fluido.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+final class DibujoEstadio {
+
+<span class="nc" id="L21">    private static final Color[] CAMISETAS = {</span>
+            new Color(0xE5, 0x3B, 0x3B), new Color(0xF5, 0xF5, 0xF5), new Color(0xFF, 0xD3, 0x2E),
+            new Color(0x2F, 0x7B, 0xE8), new Color(0xFF, 0x8A, 0x1F), new Color(0x2E, 0xB8, 0x4B),
+            new Color(0xE9, 0x5B, 0xA6), new Color(0x7A, 0x4D, 0xE8), new Color(0x1B, 0x2A, 0x57)
+    };
+<span class="nc" id="L26">    private static final Color[] PIELES = {</span>
+            new Color(0xF2, 0xC9, 0xA5), new Color(0xE0, 0xA9, 0x7C), new Color(0xB9, 0x79, 0x4C), new Color(0x8A, 0x5A, 0x3A)
+    };
+
+    private DibujoEstadio() {
+        // Clase de utilidad.
+    }
+
+    /**
+     * Crea la imagen de fondo.
+     *
+     * @param pxAncho  ancho de la imagen en píxeles
+     * @param pxAlto   alto de la imagen en píxeles
+     * @param logAncho ancho &quot;lógico&quot; que se quiere dibujar
+     * @param logAlto  alto &quot;lógico&quot; que se quiere dibujar
+     * @param conArcos si dibuja también la parte de atrás de los arcos
+     * @return la imagen lista
+     */
+    static BufferedImage crearFondo(int pxAncho, int pxAlto, double logAncho, double logAlto, boolean conArcos) {
+<span class="nc" id="L45">        BufferedImage img = new BufferedImage(Math.max(1, pxAncho), Math.max(1, pxAlto), BufferedImage.TYPE_INT_RGB);</span>
+<span class="nc" id="L46">        Graphics2D g = img.createGraphics();</span>
+<span class="nc" id="L47">        Estilo.calidad(g);</span>
+<span class="nc" id="L48">        g.scale(pxAncho / logAncho, pxAlto / logAlto);</span>
+<span class="nc" id="L49">        double w = logAncho;</span>
+<span class="nc" id="L50">        double h = logAlto;</span>
+<span class="nc" id="L51">        double yVallas = h * 0.775;</span>
+<span class="nc" id="L52">        double yGradas = 66;</span>
+
+<span class="nc" id="L54">        cielo(g, w, yGradas + 20);</span>
+<span class="nc" id="L55">        torresDeLuz(g, w);</span>
+<span class="nc" id="L56">        gradas(g, w, yGradas, yVallas - 30);</span>
+<span class="nc" id="L57">        vallas(g, w, yVallas - 30, 30);</span>
+<span class="nc" id="L58">        pasto(g, w, h, yVallas);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (conArcos) {</span>
+<span class="nc" id="L60">            dibujarArco(g, new Porteria(Porteria.IZQUIERDA), false);</span>
+<span class="nc" id="L61">            dibujarArco(g, new Porteria(Porteria.DERECHA), false);</span>
+        }
+<span class="nc" id="L63">        g.dispose();</span>
+<span class="nc" id="L64">        return img;</span>
+    }
+
+    private static void cielo(Graphics2D g, double w, double alto) {
+<span class="nc" id="L68">        g.setPaint(new GradientPaint(0, 0, new Color(0x1F, 0x7F, 0xEA), 0, (float) alto, new Color(0xB5, 0xE3, 0xFF)));</span>
+<span class="nc" id="L69">        g.fill(new Rectangle2D.Double(0, 0, w, alto));</span>
+        // Nubes suaves
+<span class="nc" id="L71">        g.setColor(new Color(255, 255, 255, 120));</span>
+<span class="nc" id="L72">        double[][] nubes = {{110, 28, 120, 22}, {160, 20, 90, 20}, {620, 24, 140, 20}, {700, 30, 110, 18}, {880, 18, 100, 18}};</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        for (double[] n : nubes) {</span>
+<span class="nc" id="L74">            g.fill(new Ellipse2D.Double(n[0], n[1], n[2], n[3]));</span>
+        }
+<span class="nc" id="L76">    }</span>
+
+    private static void torresDeLuz(Graphics2D g, double w) {
+<span class="nc" id="L79">        double[] xs = {w * 0.13, w * 0.87};</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        for (double x : xs) {</span>
+            // Brillo
+<span class="nc" id="L82">            g.setPaint(new RadialGradientPaint((float) x, 26f, 70f, new float[]{0f, 1f},</span>
+                    new Color[]{new Color(255, 255, 220, 200), new Color(255, 255, 220, 0)}));
+<span class="nc" id="L84">            g.fill(new Ellipse2D.Double(x - 70, -44, 140, 140));</span>
+            // Poste y panel de focos
+<span class="nc" id="L86">            g.setColor(new Color(0x2A, 0x33, 0x4F));</span>
+<span class="nc" id="L87">            g.fill(new Rectangle2D.Double(x - 4, 30, 8, 60));</span>
+<span class="nc" id="L88">            g.fill(new Rectangle2D.Double(x - 30, 6, 60, 26));</span>
+<span class="nc" id="L89">            g.setColor(new Color(255, 250, 210));</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            for (int i = 0; i &lt; 5; i++) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                for (int j = 0; j &lt; 2; j++) {</span>
+<span class="nc" id="L92">                    g.fill(new Ellipse2D.Double(x - 27 + i * 11.5, 9 + j * 11.5, 8, 8));</span>
+                }
+            }
+        }
+<span class="nc" id="L96">    }</span>
+
+    private static void gradas(Graphics2D g, double w, double y0, double y1) {
+        // Fondo oscuro de las gradas
+<span class="nc" id="L100">        g.setPaint(new GradientPaint(0, (float) y0, new Color(0x1B, 0x2A, 0x57), 0, (float) y1, new Color(0x3A, 0x2F, 0x6B)));</span>
+<span class="nc" id="L101">        g.fill(new Rectangle2D.Double(0, y0, w, y1 - y0));</span>
+
+<span class="nc" id="L103">        Random azar = new Random(42);</span>
+<span class="nc" id="L104">        double paso = 11;</span>
+<span class="nc" id="L105">        int fila = 0;</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        for (double y = y0 + 10; y &lt; y1 - 4; y += paso, fila++) {</span>
+<span class="nc" id="L107">            double desfase = (fila % 2) * 4.5;</span>
+            // Escalón de la grada
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            for (double x = -4 + desfase; x &lt; w + 4; x += 9) {</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                if (azar.nextInt(14) == 0) {</span>
+<span class="nc" id="L111">                    continue; // un asiento vacío de vez en cuando</span>
+                }
+<span class="nc" id="L113">                Color camiseta = CAMISETAS[azar.nextInt(CAMISETAS.length)];</span>
+<span class="nc" id="L114">                Color piel = PIELES[azar.nextInt(PIELES.length)];</span>
+<span class="nc" id="L115">                double tono = 1 - 0.28 * (1 - (y - y0) / (y1 - y0));</span>
+<span class="nc" id="L116">                g.setColor(Estilo.mezclar(camiseta, tono - 1));</span>
+<span class="nc" id="L117">                g.fill(new Rectangle2D.Double(x - 3, y + 1.5, 6.5, 6));</span>
+<span class="nc" id="L118">                g.setColor(Estilo.mezclar(piel, tono - 1));</span>
+<span class="nc" id="L119">                g.fill(new Ellipse2D.Double(x - 2.2, y - 3.2, 4.8, 4.8));</span>
+            }
+        }
+        // Pasillos verticales
+<span class="nc" id="L123">        g.setColor(new Color(10, 15, 40, 120));</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        for (double x = 160; x &lt; w; x += 170) {</span>
+<span class="nc" id="L125">            g.fill(new Rectangle2D.Double(x, y0, 6, y1 - y0));</span>
+        }
+        // Borde del techo
+<span class="nc" id="L128">        g.setColor(new Color(0x14, 0x1B, 0x38));</span>
+<span class="nc" id="L129">        g.fill(new Rectangle2D.Double(0, y0 - 8, w, 10));</span>
+<span class="nc" id="L130">        g.setColor(new Color(255, 255, 255, 60));</span>
+<span class="nc" id="L131">        g.fill(new Rectangle2D.Double(0, y0 - 8, w, 2));</span>
+<span class="nc" id="L132">    }</span>
+
+    private static void vallas(Graphics2D g, double w, double y, double alto) {
+<span class="nc" id="L135">        String[] textos = {&quot;DOPO SOCCER&quot;, &quot;HEAD CUP&quot;, &quot;ECI 2026&quot;, &quot;GOOOL&quot;, &quot;FAIR PLAY&quot;};</span>
+<span class="nc" id="L136">        Color[] colores = {Estilo.ROJO, new Color(0xF4, 0xF4, 0xF4), Estilo.AZUL, Estilo.AMARILLO, Estilo.VERDE};</span>
+<span class="nc" id="L137">        double ancho = 160;</span>
+<span class="nc" id="L138">        int i = 0;</span>
+<span class="nc" id="L139">        g.setFont(Estilo.fuente(15f));</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        for (double x = 0; x &lt; w; x += ancho, i++) {</span>
+<span class="nc" id="L141">            Color c = colores[i % colores.length];</span>
+<span class="nc" id="L142">            g.setPaint(new GradientPaint(0, (float) y, Estilo.mezclar(c, 0.15), 0, (float) (y + alto), Estilo.mezclar(c, -0.25)));</span>
+<span class="nc" id="L143">            g.fill(new Rectangle2D.Double(x, y, ancho, alto));</span>
+<span class="nc" id="L144">            g.setColor(new Color(0, 0, 0, 90));</span>
+<span class="nc" id="L145">            g.fill(new Rectangle2D.Double(x, y, 2, alto));</span>
+<span class="nc bnc" id="L146" title="All 6 branches missed.">            Color texto = (c.equals(Estilo.AMARILLO) || c.getRed() &gt; 230 &amp;&amp; c.getGreen() &gt; 230) ? Estilo.AZUL_NOCHE : Color.WHITE;</span>
+<span class="nc" id="L147">            g.setColor(texto);</span>
+<span class="nc" id="L148">            String t = textos[i % textos.length];</span>
+<span class="nc" id="L149">            double tw = Estilo.ancho(g, g.getFont(), t);</span>
+<span class="nc" id="L150">            g.drawString(t, (float) (x + (ancho - tw) / 2), (float) (y + alto * 0.68));</span>
+        }
+<span class="nc" id="L152">        g.setColor(new Color(255, 255, 255, 120));</span>
+<span class="nc" id="L153">        g.fill(new Rectangle2D.Double(0, y, w, 2));</span>
+<span class="nc" id="L154">    }</span>
+
+    private static void pasto(Graphics2D g, double w, double h, double y0) {
+<span class="nc" id="L157">        g.setPaint(new GradientPaint(0, (float) y0, new Color(0x5F, 0xC8, 0x55), 0, (float) h, new Color(0x2F, 0x9A, 0x3C)));</span>
+<span class="nc" id="L158">        g.fill(new Rectangle2D.Double(0, y0, w, h - y0));</span>
+        // Franjas de corte del pasto
+<span class="nc" id="L160">        double ancho = 62;</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        for (int i = 0; i * ancho &lt; w; i++) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (i % 2 == 0) {</span>
+<span class="nc" id="L163">                g.setColor(new Color(0, 60, 0, 34));</span>
+<span class="nc" id="L164">                g.fill(new Rectangle2D.Double(i * ancho, y0, ancho, h - y0));</span>
+            }
+        }
+        // Brillo cerca de las vallas
+<span class="nc" id="L168">        g.setPaint(new GradientPaint(0, (float) y0, new Color(255, 255, 255, 60), 0, (float) (y0 + 26), new Color(255, 255, 255, 0)));</span>
+<span class="nc" id="L169">        g.fill(new Rectangle2D.Double(0, y0, w, 26));</span>
+        // Líneas de la cancha
+<span class="nc" id="L171">        g.setColor(new Color(255, 255, 255, 150));</span>
+<span class="nc" id="L172">        g.setStroke(new BasicStroke(3f));</span>
+<span class="nc" id="L173">        double yc = Cancha.SUELO + 8;</span>
+<span class="nc" id="L174">        g.setColor(new Color(255, 255, 255, 120));</span>
+<span class="nc" id="L175">        g.draw(new Line2D.Double(0, y0 + 14, w, y0 + 14));</span>
+<span class="nc" id="L176">    }</span>
+
+    /**
+     * Dibuja un arco: red, travesaño y postes.
+     *
+     * @param g      el pincel (en coordenadas lógicas)
+     * @param arco   el arco del dominio
+     * @param frente false dibuja la red del fondo; true, el marco por delante
+     */
+    static void dibujarArco(Graphics2D g, Porteria arco, boolean frente) {
+<span class="nc" id="L186">        boolean izquierda = Porteria.IZQUIERDA.equals(arco.getLado());</span>
+<span class="nc" id="L187">        double x0 = arco.getXInicio();</span>
+<span class="nc" id="L188">        double x1 = arco.getXFin();</span>
+<span class="nc" id="L189">        double yTop = arco.getYTravesaño();</span>
+<span class="nc" id="L190">        double yPiso = Cancha.SUELO;</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        double fondo = izquierda ? x0 : x1;      // el lado de la pared (por donde la red se aleja)</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        double borde = izquierda ? x1 : x0;      // el poste de adelante, por donde entra el balón</span>
+<span class="nc" id="L193">        double alto = yPiso - yTop;</span>
+
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (!frente) {</span>
+            // Vista de perfil: la red se ve de lado como una cuadrícula blanca fina sobre el costado del arco.
+<span class="nc" id="L197">            Rectangle2D lateral = new Rectangle2D.Double(Math.min(x0, x1), yTop, x1 - x0, alto);</span>
+<span class="nc" id="L198">            g.setColor(new Color(255, 255, 255, 28));</span>
+<span class="nc" id="L199">            g.fill(lateral);</span>
+<span class="nc" id="L200">            g.setColor(new Color(255, 255, 255, 175));</span>
+<span class="nc" id="L201">            g.setStroke(new BasicStroke(1.2f));</span>
+<span class="nc" id="L202">            double paso = 9;</span>
+<span class="nc bnc" id="L203" title="All 10 branches missed.">            for (double xx = borde; Math.abs(xx - fondo) &gt; 0.5 &amp;&amp; (izquierda ? xx &gt; fondo : xx &lt; fondo); xx += izquierda ? -paso : paso) {</span>
+<span class="nc" id="L204">                g.draw(new Line2D.Double(xx, yTop, xx, yPiso));</span>
+            }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">            for (double yy = yTop; yy &lt;= yPiso; yy += paso) {</span>
+<span class="nc" id="L207">                g.draw(new Line2D.Double(x0, yy, x1, yy));</span>
+            }
+            // Techo de la red: una tira inclinada hacia atrás, como se ve en la foto de referencia
+<span class="nc" id="L210">            Path2D.Double techo = new Path2D.Double();</span>
+<span class="nc" id="L211">            techo.moveTo(borde, yTop);</span>
+<span class="nc" id="L212">            techo.lineTo(fondo, yTop);</span>
+<span class="nc" id="L213">            techo.lineTo(fondo, yTop - 16);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            techo.lineTo(borde + (izquierda ? -10 : 10), yTop - 16);</span>
+<span class="nc" id="L215">            techo.closePath();</span>
+<span class="nc" id="L216">            g.setColor(new Color(255, 255, 255, 40));</span>
+<span class="nc" id="L217">            g.fill(techo);</span>
+            // La tira del techo también es de malla: cuadrícula fina recortada a su forma
+<span class="nc" id="L219">            Shape recorte = g.getClip();</span>
+<span class="nc" id="L220">            g.clip(techo);</span>
+<span class="nc" id="L221">            g.setColor(new Color(255, 255, 255, 175));</span>
+<span class="nc" id="L222">            g.setStroke(new BasicStroke(1.1f));</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">            for (double xx = Math.min(x0, x1) - 12; xx &lt;= Math.max(x0, x1) + 12; xx += 6) {</span>
+<span class="nc" id="L224">                g.draw(new Line2D.Double(xx, yTop - 16, xx, yTop));</span>
+            }
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            for (double yy = yTop - 16; yy &lt;= yTop; yy += 5) {</span>
+<span class="nc" id="L227">                g.draw(new Line2D.Double(Math.min(x0, x1) - 12, yy, Math.max(x0, x1) + 12, yy));</span>
+            }
+<span class="nc" id="L229">            g.setClip(recorte);</span>
+<span class="nc" id="L230">            g.setColor(new Color(255, 255, 255, 190));</span>
+<span class="nc" id="L231">            g.setStroke(new BasicStroke(1.4f));</span>
+<span class="nc" id="L232">            g.draw(techo);</span>
+<span class="nc" id="L233">            g.setColor(new Color(255, 255, 255, 215));</span>
+<span class="nc" id="L234">            g.setStroke(new BasicStroke(2.4f));</span>
+<span class="nc" id="L235">            g.draw(new Line2D.Double(x0, yPiso, x1, yPiso));</span>
+<span class="nc" id="L236">        } else {</span>
+            // Travesaño y postes (marco blanco con volumen)
+<span class="nc" id="L238">            g.setPaint(new GradientPaint(0, (float) yTop, Color.WHITE, 0, (float) (yTop + Porteria.GROSOR), new Color(0xC8, 0xD2, 0xE4)));</span>
+<span class="nc" id="L239">            g.fill(new Rectangle2D.Double(x0, yTop, x1 - x0, Porteria.GROSOR));</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">            double px = izquierda ? x1 - 8 : x0;</span>
+<span class="nc" id="L241">            g.setPaint(new GradientPaint((float) px, 0, Color.WHITE, (float) (px + 8), 0, new Color(0xC8, 0xD2, 0xE4)));</span>
+<span class="nc" id="L242">            g.fill(new Rectangle2D.Double(px, yTop, 8, yPiso - yTop));</span>
+<span class="nc" id="L243">            g.setColor(new Color(0x9A, 0xA8, 0xC4));</span>
+<span class="nc" id="L244">            g.setStroke(new BasicStroke(1.5f));</span>
+<span class="nc" id="L245">            g.draw(new Rectangle2D.Double(x0, yTop, x1 - x0, Porteria.GROSOR));</span>
+<span class="nc" id="L246">            g.draw(new Rectangle2D.Double(px, yTop, 8, yPiso - yTop));</span>
+        }
+<span class="nc" id="L248">    }</span>
+
+    /**
+     * Pinta confeti u otros puntos de luz sobre el fondo (cámaras del público).
+     *
+     * @param g      el pincel
+     * @param x      posición
+     * @param y      posición
+     * @param brillo entre 0 y 1
+     */
+    static void destello(Graphics2D g, double x, double y, double brillo) {
+<span class="nc" id="L259">        GeneralPath estrella = new GeneralPath();</span>
+<span class="nc" id="L260">        double r = 7 * brillo;</span>
+<span class="nc" id="L261">        estrella.moveTo(x, y - r);</span>
+<span class="nc" id="L262">        estrella.quadTo(x, y, x + r, y);</span>
+<span class="nc" id="L263">        estrella.quadTo(x, y, x, y + r);</span>
+<span class="nc" id="L264">        estrella.quadTo(x, y, x - r, y);</span>
+<span class="nc" id="L265">        estrella.quadTo(x, y, x, y - r);</span>
+<span class="nc" id="L266">        g.setColor(new Color(255, 255, 255, (int) (230 * brillo)));</span>
+<span class="nc" id="L267">        g.fill(estrella);</span>
+<span class="nc" id="L268">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

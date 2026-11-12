@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VentanaPrincipal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">VentanaPrincipal.java</span></div><h1>VentanaPrincipal.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Cancha;
+import domain.Configuracion;
+import domain.Juego;
+import domain.Partido;
+import exceptions.DOPOSoccerExcepcion;
+import util.RegistroErrores;
+
+import javax.swing.*;
+import java.awt.*;
+
+/**
+ * La ventana del juego. Guarda las elecciones que el jugador va haciendo en las
+ * pantallas (personajes, tipo de partido, tamaño) y cambia de una pantalla a
+ * otra. Todo lo que tiene que ver con las reglas se lo pide a {@link Juego}.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class VentanaPrincipal extends JFrame {
+
+    private static final String PORTADA = &quot;portada&quot;;
+    private static final String MODALIDAD = &quot;modalidad&quot;;
+    private static final String PERSONAJES = &quot;personajes&quot;;
+    private static final String CONFIG_PARTIDO = &quot;configPartido&quot;;
+    private static final String CONFIGURACION = &quot;configuracion&quot;;
+    private static final String PARTIDO = &quot;partido&quot;;
+
+    private final Juego juego;
+    private final CardLayout cartas;
+    private final JPanel contenedor;
+    private final PantallaBase portada;
+    private final PantallaBase modalidad;
+    private final PantallaBase personajes;
+    private final PantallaBase configPartido;
+    private final PantallaBase configuracion;
+    private final PantallaPartido pantallaPartido;
+    private PantallaBase actual;
+
+<span class="nc" id="L41">    private final int[] personajeElegido = {0, 1};</span>
+<span class="nc" id="L42">    private String tipo = Partido.TIPO_TIEMPO;</span>
+<span class="nc" id="L43">    private int minutos = 3;</span>
+<span class="nc" id="L44">    private int goles = 5;</span>
+<span class="nc" id="L45">    private int resolucion = Cancha.MEDIANA;</span>
+
+    /**
+     * Arma la ventana con todas sus pantallas y muestra la portada.
+     */
+    public VentanaPrincipal() {
+<span class="nc" id="L51">        super(&quot;Head Soccer · DOPOSoccer&quot;);</span>
+<span class="nc" id="L52">        juego = new Juego();</span>
+<span class="nc" id="L53">        cartas = new CardLayout();</span>
+<span class="nc" id="L54">        contenedor = new JPanel(cartas);</span>
+
+<span class="nc" id="L56">        portada = new PantallaPortada(this);</span>
+<span class="nc" id="L57">        modalidad = new PantallaModalidad(this);</span>
+<span class="nc" id="L58">        personajes = new PantallaPersonajes(this);</span>
+<span class="nc" id="L59">        configPartido = new PantallaConfigPartido(this);</span>
+<span class="nc" id="L60">        configuracion = new PantallaConfiguracion(this);</span>
+<span class="nc" id="L61">        pantallaPartido = new PantallaPartido(this);</span>
+
+<span class="nc" id="L63">        contenedor.add(portada, PORTADA);</span>
+<span class="nc" id="L64">        contenedor.add(modalidad, MODALIDAD);</span>
+<span class="nc" id="L65">        contenedor.add(personajes, PERSONAJES);</span>
+<span class="nc" id="L66">        contenedor.add(configPartido, CONFIG_PARTIDO);</span>
+<span class="nc" id="L67">        contenedor.add(configuracion, CONFIGURACION);</span>
+<span class="nc" id="L68">        contenedor.add(pantallaPartido, PARTIDO);</span>
+<span class="nc" id="L69">        setContentPane(contenedor);</span>
+
+<span class="nc" id="L71">        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);</span>
+<span class="nc" id="L72">        setResizable(false);</span>
+<span class="nc" id="L73">        aplicarResolucion();</span>
+<span class="nc" id="L74">        setLocationRelativeTo(null);</span>
+<span class="nc" id="L75">        mostrar(portada, PORTADA);</span>
+<span class="nc" id="L76">    }</span>
+
+    private void mostrar(PantallaBase pantalla, String nombre) {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (actual != null) {</span>
+<span class="nc" id="L80">            actual.desactivar();</span>
+        }
+<span class="nc" id="L82">        actual = pantalla;</span>
+<span class="nc" id="L83">        cartas.show(contenedor, nombre);</span>
+<span class="nc" id="L84">        pantalla.activar();</span>
+<span class="nc" id="L85">    }</span>
+
+    private void aplicarResolucion() {
+<span class="nc" id="L88">        contenedor.setPreferredSize(new Dimension(Cancha.anchoPantalla(resolucion), Cancha.altoPantalla(resolucion)));</span>
+<span class="nc" id="L89">        pack();</span>
+<span class="nc" id="L90">        setLocationRelativeTo(null);</span>
+<span class="nc" id="L91">    }</span>
+
+    // navegación
+
+    void irAPortada() {
+<span class="nc" id="L96">        mostrar(portada, PORTADA);</span>
+<span class="nc" id="L97">    }</span>
+
+    void irAModalidad() {
+<span class="nc" id="L100">        mostrar(modalidad, MODALIDAD);</span>
+<span class="nc" id="L101">    }</span>
+
+    void irAPersonajes() {
+        try {
+<span class="nc" id="L105">            juego.seleccionarModalidad(Juego.JUGADOR_VS_JUGADOR);</span>
+<span class="nc" id="L106">            mostrar(personajes, PERSONAJES);</span>
+<span class="nc" id="L107">        } catch (DOPOSoccerExcepcion e) {</span>
+<span class="nc" id="L108">            avisar(e.getMessage());</span>
+<span class="nc" id="L109">        }</span>
+<span class="nc" id="L110">    }</span>
+
+    void irAConfigPartido() {
+<span class="nc" id="L113">        mostrar(configPartido, CONFIG_PARTIDO);</span>
+<span class="nc" id="L114">    }</span>
+
+    void irAConfiguracion() {
+<span class="nc" id="L117">        mostrar(configuracion, CONFIGURACION);</span>
+<span class="nc" id="L118">    }</span>
+
+    void salir() {
+<span class="nc" id="L121">        dispose();</span>
+<span class="nc" id="L122">        System.exit(0);</span>
+<span class="nc" id="L123">    }</span>
+
+    /**
+     * Crea un partido nuevo con lo que se eligió y pasa a la cancha.
+     */
+    void iniciarPartido() {
+        try {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            int valor = Partido.TIPO_TIEMPO.equals(tipo) ? minutos : goles;</span>
+<span class="nc" id="L131">            Partido partido = juego.iniciarPartido(juego.getPersonajes()[personajeElegido[0]],</span>
+<span class="nc" id="L132">                    juego.getPersonajes()[personajeElegido[1]], tipo, valor, resolucion);</span>
+<span class="nc" id="L133">            aplicarResolucion();</span>
+<span class="nc" id="L134">            pantallaPartido.mostrarPartido(partido);</span>
+<span class="nc" id="L135">            mostrar(pantallaPartido, PARTIDO);</span>
+<span class="nc" id="L136">        } catch (DOPOSoccerExcepcion e) {</span>
+<span class="nc" id="L137">            avisar(e.getMessage());</span>
+<span class="nc" id="L138">        }</span>
+<span class="nc" id="L139">    }</span>
+
+    private void avisar(String mensaje) {
+<span class="nc" id="L142">        JOptionPane.showMessageDialog(this, mensaje, &quot;Ups&quot;, JOptionPane.WARNING_MESSAGE);</span>
+<span class="nc" id="L143">    }</span>
+
+    // elecciones
+
+    Juego getJuego() {
+<span class="nc" id="L148">        return juego;</span>
+    }
+
+    int getPersonajeElegido(int jugador) {
+<span class="nc" id="L152">        return personajeElegido[jugador];</span>
+    }
+
+    void elegirPersonaje(int jugador, int indice) {
+<span class="nc" id="L156">        personajeElegido[jugador] = indice;</span>
+<span class="nc" id="L157">        repaint();</span>
+<span class="nc" id="L158">    }</span>
+
+    String getTipo() {
+<span class="nc" id="L161">        return tipo;</span>
+    }
+
+    void setTipo(String nuevo) {
+<span class="nc" id="L165">        tipo = nuevo;</span>
+<span class="nc" id="L166">    }</span>
+
+    int getMinutos() {
+<span class="nc" id="L169">        return minutos;</span>
+    }
+
+    int getGoles() {
+<span class="nc" id="L173">        return goles;</span>
+    }
+
+    /**
+     * Sube o baja los minutos o los goles según el tipo elegido, dentro de los límites.
+     */
+    void cambiarValor(int paso) {
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (Partido.TIPO_TIEMPO.equals(tipo)) {</span>
+<span class="nc" id="L181">            minutos = Math.max(1, Math.min(10, minutos + paso));</span>
+        } else {
+<span class="nc" id="L183">            goles = Math.max(1, Math.min(20, goles + paso));</span>
+        }
+<span class="nc" id="L185">    }</span>
+
+    int getResolucion() {
+<span class="nc" id="L188">        return resolucion;</span>
+    }
+
+    void setResolucion(int indice) {
+<span class="nc" id="L192">        resolucion = indice;</span>
+<span class="nc" id="L193">        aplicarResolucion();</span>
+<span class="nc" id="L194">    }</span>
+
+    void alternarSonido() {
+<span class="nc" id="L197">        Configuracion c = juego.getConfiguracion();</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        guardarConfiguracion(!c.isSonidoActivo(), c.isMusicaActiva(), c.getIdioma());</span>
+<span class="nc" id="L199">        Sonidos.setActivo(c.isSonidoActivo());</span>
+<span class="nc" id="L200">    }</span>
+
+    void alternarMusica() {
+<span class="nc" id="L203">        Configuracion c = juego.getConfiguracion();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        guardarConfiguracion(c.isSonidoActivo(), !c.isMusicaActiva(), c.getIdioma());</span>
+<span class="nc" id="L205">    }</span>
+
+    void cambiarIdioma(String idioma) {
+<span class="nc" id="L208">        Configuracion c = juego.getConfiguracion();</span>
+<span class="nc" id="L209">        guardarConfiguracion(c.isSonidoActivo(), c.isMusicaActiva(), idioma);</span>
+<span class="nc" id="L210">    }</span>
+
+    private void guardarConfiguracion(boolean sonido, boolean musica, String idioma) {
+        try {
+<span class="nc" id="L214">            juego.configurar(sonido, musica, idioma);</span>
+<span class="nc" id="L215">        } catch (DOPOSoccerExcepcion e) {</span>
+<span class="nc" id="L216">            avisar(e.getMessage());</span>
+<span class="nc" id="L217">        }</span>
+<span class="nc" id="L218">    }</span>
+
+    /**
+     * Punto de apoyo para registrar un error inesperado sin que el juego se caiga.
+     */
+    static void registrar(String donde, Throwable error) {
+<span class="nc" id="L224">        RegistroErrores.registrar(donde, error);</span>
+<span class="nc" id="L225">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

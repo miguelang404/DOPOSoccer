@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaConfiguracion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaConfiguracion.java</span></div><h1>PantallaConfiguracion.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Configuracion;
+
+import java.awt.*;
+
+/**
+ * Configuración general del juego (sonido, música, idioma) y un recordatorio de
+ * los controles de cada jugador.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+class PantallaConfiguracion extends PantallaBase {
+
+    PantallaConfiguracion(VentanaPrincipal ventana) {
+<span class="nc" id="L17">        super(ventana, false);</span>
+<span class="nc" id="L18">    }</span>
+
+    @Override
+    protected void pintar(Graphics2D g, double t) {
+<span class="nc" id="L22">        velo(g, 135);</span>
+<span class="nc" id="L23">        titulo(g, &quot;CONFIGURACIÓN&quot;, 78);</span>
+<span class="nc" id="L24">        Configuracion c = ventana.getJuego().getConfiguracion();</span>
+
+<span class="nc" id="L26">        tarjeta(g, 60, 100, 440, 366, Estilo.AZUL_CLARO, false);</span>
+<span class="nc" id="L27">        fila(g, &quot;EFECTOS DE SONIDO&quot;, 150, c.isSonidoActivo(), ventana::alternarSonido);</span>
+<span class="nc" id="L28">        fila(g, &quot;MÚSICA&quot;, 232, c.isMusicaActiva(), ventana::alternarMusica);</span>
+
+<span class="nc" id="L30">        Estilo.textoCentrado(g, &quot;IDIOMA&quot;, Estilo.fuente(22), 280, 330, Color.WHITE);</span>
+<span class="nc" id="L31">        boolean es = Configuracion.ESPAÑOL.equals(c.getIdioma());</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        boton(g, &quot;ESPAÑOL&quot;, es ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 100, 346, 180, 50, true,</span>
+<span class="nc" id="L33">                () -&gt; ventana.cambiarIdioma(Configuracion.ESPAÑOL));</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        boton(g, &quot;ENGLISH&quot;, !es ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 290, 346, 180, 50, true,</span>
+<span class="nc" id="L35">                () -&gt; ventana.cambiarIdioma(Configuracion.INGLES));</span>
+<span class="nc" id="L36">        texto(g, &quot;La música y el idioma se guardan ahora,&quot;, 14, 280, 428, new Color(0xBF, 0xD6, 0xFF));</span>
+<span class="nc" id="L37">        texto(g, &quot;pero se activan en versiones siguientes.&quot;, 14, 280, 448, new Color(0xBF, 0xD6, 0xFF));</span>
+
+<span class="nc" id="L39">        tarjeta(g, 520, 100, 420, 366, Estilo.AMARILLO, false);</span>
+<span class="nc" id="L40">        Estilo.textoCentrado(g, &quot;CONTROLES&quot;, Estilo.fuente(26), 730, 142, Estilo.AMARILLO);</span>
+<span class="nc" id="L41">        controles(g, &quot;JUGADOR 1&quot;, Estilo.AZUL_CLARO, 540, 172, &quot;A / D&quot;, &quot;W&quot;, &quot;F&quot;, &quot;G&quot;);</span>
+<span class="nc" id="L42">        controles(g, &quot;JUGADOR 2&quot;, Estilo.ROJO, 540, 318, &quot;← / →&quot;, &quot;↑&quot;, &quot;. (punto)&quot;, &quot;, (coma)&quot;);</span>
+
+<span class="nc" id="L44">        boton(g, &quot;VOLVER&quot;, Estilo.ROJO, 40, 482, 200, 56, true, ventana::irAPortada);</span>
+<span class="nc" id="L45">    }</span>
+
+    private void fila(Graphics2D g, String texto, double y, boolean encendido, Runnable accion) {
+<span class="nc" id="L48">        g.setFont(Estilo.fuente(22));</span>
+<span class="nc" id="L49">        double ancho = Estilo.ancho(g, Estilo.fuente(22), texto);</span>
+<span class="nc" id="L50">        Estilo.textoCentrado(g, texto, Estilo.fuente(22), 90 + ancho / 2, y + 34, Color.WHITE);</span>
+<span class="nc" id="L51">        interruptor(g, 330, y, encendido, accion);</span>
+<span class="nc" id="L52">    }</span>
+
+    private void controles(Graphics2D g, String nombre, Color color, double x, double y, String mover, String salto,
+                           String patada, String poder) {
+<span class="nc" id="L56">        Estilo.textoCentrado(g, nombre, Estilo.fuente(20), x + 190, y + 18, color);</span>
+<span class="nc" id="L57">        String[][] filas = {{&quot;Moverse&quot;, mover}, {&quot;Saltar&quot;, salto}, {&quot;Patear&quot;, patada}, {&quot;Poder&quot;, poder}};</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        for (int i = 0; i &lt; filas.length; i++) {</span>
+<span class="nc" id="L59">            double yy = y + 44 + i * 30;</span>
+<span class="nc" id="L60">            g.setFont(Estilo.fuenteTexto(17));</span>
+<span class="nc" id="L61">            g.setColor(new Color(0xD8, 0xE6, 0xFF));</span>
+<span class="nc" id="L62">            g.drawString(filas[i][0], (float) (x + 60), (float) yy);</span>
+<span class="nc" id="L63">            double w = Math.max(44, Estilo.ancho(g, Estilo.fuente(15), filas[i][1]) + 26);</span>
+<span class="nc" id="L64">            Estilo.panel(g, x + 300 - w / 2, yy - 20, w, 26, 10, Color.WHITE, new Color(0x8A, 0x93, 0xA6));</span>
+<span class="nc" id="L65">            Estilo.textoCentrado(g, filas[i][1], Estilo.fuente(15), x + 300, yy, Estilo.TEXTO_OSCURO);</span>
+        }
+<span class="nc" id="L67">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

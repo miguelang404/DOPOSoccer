@@ -1,14 +1,11 @@
 package domain;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import exceptions.DOPOSoccerExcepcion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import util.RegistroErrores;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pruebas de la puerta de entrada al dominio: Juego y Configuracion.

@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaBase.java</span></div><h1>PantallaBase.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Cancha;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Base de todas las pantallas. Dibuja el estadio de fondo, trabaja siempre con
+ * las coordenadas lógicas de la cancha (1000 x 560) y se ajusta sola al tamaño
+ * de la ventana. Los botones no son componentes de Swing: se dibujan y se
+ * registran como &quot;zonas&quot; de clic cada vez que se pinta la pantalla.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+abstract class PantallaBase extends JPanel {
+
+    /**
+     * Una zona donde se puede hacer clic.
+     */
+    private static final class Zona {
+        final Rectangle2D area;
+        final Runnable accion;
+
+<span class="nc" id="L34">        Zona(Rectangle2D area, Runnable accion) {</span>
+<span class="nc" id="L35">            this.area = area;</span>
+<span class="nc" id="L36">            this.accion = accion;</span>
+<span class="nc" id="L37">        }</span>
+    }
+
+    protected final VentanaPrincipal ventana;
+    protected double t;
+
+<span class="nc" id="L43">    private final List&lt;Zona&gt; zonas = new ArrayList&lt;Zona&gt;();</span>
+<span class="nc" id="L44">    private final List&lt;Zona&gt; zonasNuevas = new ArrayList&lt;Zona&gt;();</span>
+    private final Timer reloj;
+    private BufferedImage fondo;
+    private int fondoAncho;
+    private int fondoAlto;
+    private boolean fondoConArcos;
+    private Zona encima;
+    private Zona presionada;
+
+    /**
+     * @param ventana  la ventana principal, para poder cambiar de pantalla
+     * @param conArcos si el fondo lleva los arcos de fútbol
+     */
+<span class="nc" id="L57">    PantallaBase(VentanaPrincipal ventana, boolean conArcos) {</span>
+<span class="nc" id="L58">        this.ventana = ventana;</span>
+<span class="nc" id="L59">        this.fondoConArcos = conArcos;</span>
+<span class="nc" id="L60">        setOpaque(true);</span>
+<span class="nc" id="L61">        setBackground(Estilo.AZUL_NOCHE);</span>
+<span class="nc" id="L62">        reloj = new Timer(33, e -&gt; {</span>
+<span class="nc" id="L63">            t += 2;</span>
+<span class="nc" id="L64">            repaint();</span>
+<span class="nc" id="L65">        });</span>
+<span class="nc" id="L66">        MouseAdapter raton = new MouseAdapter() {</span>
+            @Override
+            public void mouseMoved(MouseEvent e) {
+<span class="nc" id="L69">                Zona z = buscar(e);</span>
+<span class="nc bnc" id="L70" title="All 10 branches missed.">                if ((z == null) != (encima == null) || (z != null &amp;&amp; !z.area.equals(encima.area))) {</span>
+<span class="nc" id="L71">                    encima = z;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                    setCursor(Cursor.getPredefinedCursor(z == null ? Cursor.DEFAULT_CURSOR : Cursor.HAND_CURSOR));</span>
+<span class="nc" id="L73">                    repaint();</span>
+                }
+<span class="nc" id="L75">            }</span>
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+<span class="nc" id="L79">                presionada = buscar(e);</span>
+<span class="nc" id="L80">                repaint();</span>
+<span class="nc" id="L81">            }</span>
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+<span class="nc" id="L85">                Zona z = buscar(e);</span>
+<span class="nc" id="L86">                Zona antes = presionada;</span>
+<span class="nc" id="L87">                presionada = null;</span>
+<span class="nc" id="L88">                repaint();</span>
+<span class="nc bnc" id="L89" title="All 6 branches missed.">                if (z != null &amp;&amp; antes != null &amp;&amp; z.area.equals(antes.area)) {</span>
+<span class="nc" id="L90">                    Sonidos.reproducir(&quot;clic&quot;);</span>
+<span class="nc" id="L91">                    z.accion.run();</span>
+                }
+<span class="nc" id="L93">            }</span>
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+<span class="nc" id="L97">                encima = null;</span>
+<span class="nc" id="L98">                presionada = null;</span>
+<span class="nc" id="L99">                repaint();</span>
+<span class="nc" id="L100">            }</span>
+        };
+<span class="nc" id="L102">        addMouseListener(raton);</span>
+<span class="nc" id="L103">        addMouseMotionListener(raton);</span>
+<span class="nc" id="L104">    }</span>
+
+    /**
+     * Empieza a animar la pantalla (se llama cuando se muestra).
+     */
+    void activar() {
+<span class="nc" id="L110">        reloj.start();</span>
+<span class="nc" id="L111">        requestFocusInWindow();</span>
+<span class="nc" id="L112">    }</span>
+
+    /**
+     * Detiene la animación (se llama cuando se oculta).
+     */
+    void desactivar() {
+<span class="nc" id="L118">        reloj.stop();</span>
+<span class="nc" id="L119">    }</span>
+
+    private Zona buscar(MouseEvent e) {
+        // Recomendación de la IA generativa para los botones dibujados: como la pantalla se redibuja
+        // todo el tiempo, las zonas de clic se guardan en cada pintada y se convierte la posición del
+        // mouse a las coordenadas lógicas de la cancha (1000 x 560).
+<span class="nc" id="L125">        double lx = e.getX() * Cancha.ANCHO / (double) getWidth();</span>
+<span class="nc" id="L126">        double ly = e.getY() * Cancha.ALTO / (double) getHeight();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        for (int i = zonas.size() - 1; i &gt;= 0; i--) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            if (zonas.get(i).area.contains(lx, ly)) {</span>
+<span class="nc" id="L129">                return zonas.get(i);</span>
+            }
+        }
+<span class="nc" id="L132">        return null;</span>
+    }
+
+    @Override
+    protected void paintComponent(Graphics graficos) {
+<span class="nc" id="L137">        int w = getWidth();</span>
+<span class="nc" id="L138">        int h = getHeight();</span>
+<span class="nc bnc" id="L139" title="All 4 branches missed.">        if (w &lt;= 0 || h &lt;= 0) {</span>
+<span class="nc" id="L140">            return;</span>
+        }
+<span class="nc bnc" id="L142" title="All 6 branches missed.">        if (fondo == null || fondoAncho != w || fondoAlto != h) {</span>
+<span class="nc" id="L143">            fondo = DibujoEstadio.crearFondo(w, h, Cancha.ANCHO, Cancha.ALTO, fondoConArcos);</span>
+<span class="nc" id="L144">            fondoAncho = w;</span>
+<span class="nc" id="L145">            fondoAlto = h;</span>
+        }
+<span class="nc" id="L147">        Graphics2D g = (Graphics2D) graficos.create();</span>
+<span class="nc" id="L148">        Estilo.calidad(g);</span>
+<span class="nc" id="L149">        g.drawImage(fondo, 0, 0, null);</span>
+<span class="nc" id="L150">        g.scale(w / (double) Cancha.ANCHO, h / (double) Cancha.ALTO);</span>
+<span class="nc" id="L151">        zonasNuevas.clear();</span>
+<span class="nc" id="L152">        pintar(g, t);</span>
+<span class="nc" id="L153">        zonas.clear();</span>
+<span class="nc" id="L154">        zonas.addAll(zonasNuevas);</span>
+<span class="nc" id="L155">        g.dispose();</span>
+<span class="nc" id="L156">    }</span>
+
+    /**
+     * Cada pantalla dibuja aquí su contenido, en coordenadas lógicas.
+     *
+     * @param g pincel ya escalado a 1000 x 560
+     * @param t tiempo en cuadros
+     */
+    protected abstract void pintar(Graphics2D g, double t);
+
+    // piezas de interfaz
+
+    /**
+     * Velo oscuro semitransparente sobre todo el fondo, para que resalten los menús.
+     */
+    protected void velo(Graphics2D g, int alfa) {
+<span class="nc" id="L172">        g.setColor(new Color(5, 12, 35, alfa));</span>
+<span class="nc" id="L173">        g.fillRect(0, 0, Cancha.ANCHO, Cancha.ALTO);</span>
+<span class="nc" id="L174">    }</span>
+
+    /**
+     * Título grande de la pantalla, con borde y degradado.
+     */
+    protected void titulo(Graphics2D g, String texto, double y) {
+<span class="nc" id="L180">        Estilo.textoContorno(g, texto, Estilo.fuente(54), Cancha.ANCHO / 2.0, y,</span>
+                Estilo.AMARILLO, Estilo.NARANJA, new Color(0x5A, 0x2A, 0x00), 5f);
+<span class="nc" id="L182">    }</span>
+
+    /**
+     * Texto pequeño centrado, blanco.
+     */
+    protected void texto(Graphics2D g, String texto, double tam, double cx, double y, Color color) {
+<span class="nc" id="L188">        Estilo.textoCentrado(g, texto, Estilo.fuenteTexto((float) tam), cx, y, color);</span>
+<span class="nc" id="L189">    }</span>
+
+    /**
+     * Botón redondeado. Se dibuja y queda registrado como zona de clic.
+     */
+    protected void boton(Graphics2D g, String texto, Color color, double x, double y, double w, double h,
+                         boolean activo, Runnable accion) {
+<span class="nc" id="L196">        Rectangle2D area = new Rectangle2D.Double(x, y, w, h);</span>
+<span class="nc" id="L197">        Zona z = null;</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (activo) {</span>
+<span class="nc" id="L199">            z = new Zona(area, accion);</span>
+<span class="nc" id="L200">            zonasNuevas.add(z);</span>
+        }
+<span class="nc bnc" id="L202" title="All 6 branches missed.">        boolean sobre = activo &amp;&amp; z != null &amp;&amp; esZona(encima, area);</span>
+<span class="nc bnc" id="L203" title="All 4 branches missed.">        boolean hundido = activo &amp;&amp; esZona(presionada, area);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        Color base = activo ? color : Estilo.GRIS;</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (sobre) {</span>
+<span class="nc" id="L206">            base = Estilo.mezclar(base, 0.16);</span>
+        }
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        double hundir = hundido ? 3 : 0;</span>
+<span class="nc" id="L209">        double cara = h - 7;</span>
+<span class="nc" id="L210">        g.setColor(Estilo.mezclar(base, -0.55));</span>
+<span class="nc" id="L211">        g.fill(new RoundRectangle2D.Double(x, y + 5, w, cara + 2, h * 0.5, h * 0.5));</span>
+<span class="nc" id="L212">        Estilo.panel(g, x, y + hundir, w, cara, h * 0.5, base, Estilo.mezclar(base, -0.5));</span>
+<span class="nc" id="L213">        float tam = (float) (h * 0.46);</span>
+<span class="nc" id="L214">        Font f = Estilo.fuente(tam);</span>
+<span class="nc" id="L215">        g.setFont(f);</span>
+<span class="nc" id="L216">        double tw = Estilo.ancho(g, f, texto);</span>
+<span class="nc" id="L217">        double ty = y + hundir + cara / 2 + tam * 0.36;</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        g.setColor(activo ? Color.WHITE : new Color(0xDD, 0xE1, 0xEA));</span>
+<span class="nc" id="L219">        g.drawString(texto, (float) (x + (w - tw) / 2), (float) ty);</span>
+<span class="nc" id="L220">    }</span>
+
+    private boolean esZona(Zona z, Rectangle2D area) {
+<span class="nc bnc" id="L223" title="All 4 branches missed.">        return z != null &amp;&amp; z.area.equals(area);</span>
+    }
+
+    /**
+     * Registra una zona de clic sin dibujar nada (para tarjetas que se pintan aparte).
+     */
+    protected boolean zona(double x, double y, double w, double h, Runnable accion) {
+<span class="nc" id="L230">        Rectangle2D area = new Rectangle2D.Double(x, y, w, h);</span>
+<span class="nc" id="L231">        zonasNuevas.add(new Zona(area, accion));</span>
+<span class="nc" id="L232">        return esZona(encima, area);</span>
+    }
+
+    /**
+     * @return true si el mouse está sobre la zona dada
+     */
+    protected boolean sobre(double x, double y, double w, double h) {
+<span class="nc" id="L239">        return esZona(encima, new Rectangle2D.Double(x, y, w, h));</span>
+    }
+
+    /**
+     * Tarjeta con fondo oscuro translúcido y borde de color.
+     */
+    protected void tarjeta(Graphics2D g, double x, double y, double w, double h, Color borde, boolean brillo) {
+<span class="nc" id="L246">        RoundRectangle2D forma = new RoundRectangle2D.Double(x, y, w, h, 34, 34);</span>
+<span class="nc" id="L247">        g.setPaint(new java.awt.GradientPaint(0, (float) y, new Color(0x16, 0x2F, 0x6E, 235),</span>
+                0, (float) (y + h), new Color(0x08, 0x16, 0x3F, 240)));
+<span class="nc" id="L249">        g.fill(forma);</span>
+<span class="nc" id="L250">        g.setPaint(new java.awt.GradientPaint(0, (float) y, new Color(255, 255, 255, 60),</span>
+                0, (float) (y + h * 0.35), new Color(255, 255, 255, 0)));
+<span class="nc" id="L252">        g.fill(new RoundRectangle2D.Double(x + 3, y + 3, w - 6, h * 0.4, 30, 30));</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (brillo) {</span>
+<span class="nc" id="L254">            g.setColor(Estilo.conAlfa(borde, 90));</span>
+<span class="nc" id="L255">            g.setStroke(new BasicStroke(9f));</span>
+<span class="nc" id="L256">            g.draw(forma);</span>
+        }
+<span class="nc" id="L258">        g.setColor(borde);</span>
+<span class="nc" id="L259">        g.setStroke(new BasicStroke(4f));</span>
+<span class="nc" id="L260">        g.draw(forma);</span>
+<span class="nc" id="L261">    }</span>
+
+    /**
+     * Interruptor tipo &quot;encendido / apagado&quot;.
+     */
+    protected void interruptor(Graphics2D g, double x, double y, boolean encendido, Runnable accion) {
+<span class="nc" id="L267">        double w = 120;</span>
+<span class="nc" id="L268">        double h = 52;</span>
+<span class="nc" id="L269">        boolean hover = zona(x, y, w, h, accion);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        Color fondoColor = encendido ? Estilo.VERDE : Estilo.GRIS;</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        if (hover) {</span>
+<span class="nc" id="L272">            fondoColor = Estilo.mezclar(fondoColor, 0.12);</span>
+        }
+<span class="nc" id="L274">        Estilo.panel(g, x, y, w, h, h, fondoColor, Estilo.mezclar(fondoColor, -0.45));</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">        double kx = encendido ? x + w - h + 5 : x + 5;</span>
+<span class="nc" id="L276">        g.setPaint(new java.awt.GradientPaint(0, (float) y, Color.WHITE, 0, (float) (y + h), new Color(0xC9, 0xD2, 0xE6)));</span>
+<span class="nc" id="L277">        g.fill(new Ellipse2D.Double(kx, y + 5, h - 10, h - 10));</span>
+<span class="nc" id="L278">        g.setColor(new Color(0x7B, 0x86, 0xA3));</span>
+<span class="nc" id="L279">        g.setStroke(new BasicStroke(2f));</span>
+<span class="nc" id="L280">        g.draw(new Ellipse2D.Double(kx, y + 5, h - 10, h - 10));</span>
+<span class="nc" id="L281">        Font f = Estilo.fuente(18);</span>
+<span class="nc" id="L282">        g.setFont(f);</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        String s = encendido ? &quot;SÍ&quot; : &quot;NO&quot;;</span>
+<span class="nc" id="L284">        double tw = Estilo.ancho(g, f, s);</span>
+<span class="nc" id="L285">        g.setColor(Color.WHITE);</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        g.drawString(s, (float) (encendido ? x + 18 : x + w - 18 - tw), (float) (y + h / 2 + 6));</span>
+<span class="nc" id="L287">    }</span>
+
+    /**
+     * Parte un texto largo en renglones que caben en el ancho dado.
+     */
+    protected List&lt;String&gt; partir(Graphics2D g, String texto, Font f, double ancho) {
+<span class="nc" id="L293">        List&lt;String&gt; lineas = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L294">        FontMetrics fm = g.getFontMetrics(f);</span>
+<span class="nc" id="L295">        String actual = &quot;&quot;;</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        for (String palabra : texto.split(&quot; &quot;)) {</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            String prueba = actual.isEmpty() ? palabra : actual + &quot; &quot; + palabra;</span>
+<span class="nc bnc" id="L298" title="All 4 branches missed.">            if (fm.stringWidth(prueba) &gt; ancho &amp;&amp; !actual.isEmpty()) {</span>
+<span class="nc" id="L299">                lineas.add(actual);</span>
+<span class="nc" id="L300">                actual = palabra;</span>
+            } else {
+<span class="nc" id="L302">                actual = prueba;</span>
+            }
+        }
+<span class="nc bnc" id="L305" title="All 2 branches missed.">        if (!actual.isEmpty()) {</span>
+<span class="nc" id="L306">            lineas.add(actual);</span>
+        }
+<span class="nc" id="L308">        return lineas;</span>
+    }
+
+    /**
+     * @return el rectángulo entero de la pantalla (útil para pruebas visuales)
+     */
+    Rectangle limites() {
+<span class="nc" id="L315">        return new Rectangle(0, 0, getWidth(), getHeight());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

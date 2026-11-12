@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaPortada.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaPortada.java</span></div><h1>PantallaPortada.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Cancha;
+
+import java.awt.*;
+
+/**
+ * La portada: el título del juego, dos jugadores esperando y el menú principal.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+class PantallaPortada extends PantallaBase {
+
+    PantallaPortada(VentanaPrincipal ventana) {
+<span class="nc" id="L16">        super(ventana, true);</span>
+<span class="nc" id="L17">    }</span>
+
+    @Override
+    protected void pintar(Graphics2D g, double t) {
+<span class="nc" id="L21">        velo(g, 70);</span>
+<span class="nc" id="L22">        double suelo = Cancha.SUELO;</span>
+
+        // Dos jugadores de adorno, mirando al centro, y un balón que rebota entre ellos.
+<span class="nc" id="L25">        double rebote = Math.abs(Math.sin(t * 0.045));</span>
+<span class="nc" id="L26">        double bolaY = suelo - 22 - rebote * 150;</span>
+<span class="nc" id="L27">        DibujoPersonaje.dibujarGrande(g, 175, suelo - 88, suelo, &quot;COREA&quot;, false, 1, 0, &quot;AURA_AZUL&quot;, t);</span>
+<span class="nc" id="L28">        DibujoPersonaje.dibujarGrande(g, 825, suelo - 88, suelo, &quot;EEUU&quot;, false, -1, 0, &quot;RAYO&quot;, t);</span>
+
+        // Título
+<span class="nc" id="L31">        double flota = Math.sin(t * 0.06) * 4;</span>
+<span class="nc" id="L32">        Estilo.textoContorno(g, &quot;HEAD&quot;, Estilo.fuente(104), 500, 128 + flota,</span>
+                Estilo.AMARILLO, Estilo.NARANJA, new Color(0x4A, 0x20, 0x00), 7f);
+<span class="nc" id="L34">        Estilo.textoContorno(g, &quot;SOCCER&quot;, Estilo.fuente(104), 500, 226 + flota,</span>
+                new Color(0x9B, 0xE7, 0xFF), Estilo.AZUL, new Color(0x06, 0x1A, 0x55), 7f);
+<span class="nc" id="L36">        texto(g, &quot;DOPOSoccer  ·  Versión 1&quot;, 18, 500, 266, new Color(0xD8, 0xE6, 0xFF));</span>
+
+<span class="nc" id="L38">        boton(g, &quot;JUGAR&quot;, Estilo.VERDE, 350, 292, 300, 62, true, ventana::irAModalidad);</span>
+<span class="nc" id="L39">        boton(g, &quot;CONFIGURACIÓN&quot;, Estilo.AZUL, 350, 363, 300, 62, true, ventana::irAConfiguracion);</span>
+<span class="nc" id="L40">        boton(g, &quot;SALIR&quot;, Estilo.ROJO, 350, 434, 300, 62, true, ventana::salir);</span>
+
+<span class="nc" id="L42">        texto(g, &quot;Escuela Colombiana de Ingeniería Julio Garavito  ·  DOPO 2026-2&quot;, 15, 500, 538,</span>
+                new Color(255, 255, 255, 200));
+<span class="nc" id="L44">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DibujoPersonaje.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">DibujoPersonaje.java</span></div><h1>DibujoPersonaje.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Jugador;
+
+import java.awt.*;
+import java.awt.geom.*;
+
+/**
+ * Dibuja a los personajes: cabeza grande con ojos que siguen el balón, camiseta
+ * del país, un pie que patea y el aura del poder.
+ * Todo con formas, sin imágenes, así que se ve nítido en cualquier resolución.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+final class DibujoPersonaje {
+
+    static final int RADIO = 46;
+    static final int ALTURA_CENTRO = 88;
+
+
+    private DibujoPersonaje() {
+        // Clase de utilidad.
+    }
+
+    /**
+     * Colores de un personaje: camiseta, adorno, pantaloneta, medias, piel y pelo.
+     *
+     * @param codigo  COREA, CAMERUN, NIGERIA o EEUU
+     * @param alterno si usa la camiseta de visitante
+     * @return seis colores en ese orden
+     */
+    static Color[] colores(String codigo, boolean alterno) {
+        Color jersey;
+        Color adorno;
+        Color short1;
+        Color medias;
+        Color piel;
+        Color pelo;
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (&quot;COREA&quot;.equals(codigo)) {</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">            jersey = alterno ? new Color(0xF4, 0xF4, 0xF4) : new Color(0xD6, 0x23, 0x2A);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            adorno = alterno ? new Color(0xD6, 0x23, 0x2A) : new Color(0x1D, 0x3F, 0x8F);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            short1 = alterno ? new Color(0xD6, 0x23, 0x2A) : new Color(0x1D, 0x3F, 0x8F);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            medias = alterno ? new Color(0xF4, 0xF4, 0xF4) : new Color(0xD6, 0x23, 0x2A);</span>
+<span class="nc" id="L45">            piel = new Color(0xF0, 0xC8, 0xA0);</span>
+<span class="nc" id="L46">            pelo = new Color(0x18, 0x18, 0x22);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        } else if (&quot;CAMERUN&quot;.equals(codigo)) {</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            jersey = alterno ? new Color(0xFC, 0xD1, 0x16) : new Color(0x0C, 0x8F, 0x3C);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">            adorno = alterno ? new Color(0x0C, 0x8F, 0x3C) : new Color(0xFC, 0xD1, 0x16);</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            short1 = alterno ? new Color(0x0C, 0x8F, 0x3C) : new Color(0xCE, 0x11, 0x26);</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            medias = alterno ? new Color(0xFC, 0xD1, 0x16) : new Color(0xFC, 0xD1, 0x16);</span>
+<span class="nc" id="L52">            piel = new Color(0x8A, 0x5A, 0x3A);</span>
+<span class="nc" id="L53">            pelo = new Color(0x14, 0x10, 0x10);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        } else if (&quot;NIGERIA&quot;.equals(codigo)) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            jersey = alterno ? new Color(0xF4, 0xF4, 0xF4) : new Color(0x13, 0x9A, 0x4A);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">            adorno = alterno ? new Color(0x13, 0x9A, 0x4A) : new Color(0xF4, 0xF4, 0xF4);</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            short1 = alterno ? new Color(0x13, 0x9A, 0x4A) : new Color(0xF4, 0xF4, 0xF4);</span>
+<span class="nc" id="L58">            medias = new Color(0x13, 0x9A, 0x4A);</span>
+<span class="nc" id="L59">            piel = new Color(0xA9, 0x6F, 0x45);</span>
+<span class="nc" id="L60">            pelo = new Color(0x12, 0x10, 0x10);</span>
+        } else {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            jersey = alterno ? new Color(0x1F, 0x3A, 0x93) : new Color(0xF4, 0xF4, 0xF4);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            adorno = alterno ? new Color(0xC8, 0x10, 0x2E) : new Color(0x1F, 0x3A, 0x93);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            short1 = alterno ? new Color(0xF4, 0xF4, 0xF4) : new Color(0x1F, 0x3A, 0x93);</span>
+<span class="nc" id="L65">            medias = new Color(0xC8, 0x10, 0x2E);</span>
+<span class="nc" id="L66">            piel = new Color(0xF4, 0xCF, 0xA8);</span>
+<span class="nc" id="L67">            pelo = new Color(0x8A, 0x55, 0x22);</span>
+        }
+<span class="nc" id="L69">        return new Color[]{jersey, adorno, short1, medias, piel, pelo};</span>
+    }
+
+    /**
+     * Dibuja un personaje completo.
+     *
+     * @param g       el pincel
+     * @param x       centro de la cabeza
+     * @param y       centro de la cabeza
+     * @param suelo   y del piso
+     * @param codigo  código del personaje
+     * @param alterno si usa camiseta de visitante
+     * @param mirando 1 derecha, -1 izquierda
+     * @param patada  progreso de la patada (0 a 1)
+     * @param aura    código del aura activa (&quot;&quot; si no tiene)
+     * @param t       tiempo en cuadros, para animar
+     */
+    static void dibujarGrande(Graphics2D g, double x, double y, double suelo, String codigo, boolean alterno,
+                              int mirando, double patada,
+                              String aura, double t) {
+<span class="nc" id="L89">        dibujarBase(g, x, y, codigo, alterno, mirando, patada, aura, t);</span>
+<span class="nc" id="L90">    }</span>
+
+    /**
+     * Dibuja al personaje a su tamaño de juego: mide justo lo que mide en el dominio
+     * (la mitad de la altura del arco). Se usa dentro de la cancha.
+     *
+     * @param g       el pincel
+     * @param x       centro de la cabeza
+     * @param y       centro de la cabeza
+     * @param suelo   y del piso
+     * @param codigo  código del personaje
+     * @param alterno si usa camiseta de visitante
+     * @param mirando 1 derecha, -1 izquierda
+     * @param patada  progreso de la patada (0 a 1)
+     * @param aura    código del aura activa (&quot;&quot; si no tiene)
+     * @param t       tiempo en cuadros, para animar
+     */
+    static void dibujar(Graphics2D g, double x, double y, double suelo, String codigo, boolean alterno,
+                        int mirando, double patada,
+                        String aura, double t) {
+<span class="nc" id="L110">        double k = Jugador.RADIO_CABEZA / (double) RADIO;</span>
+<span class="nc" id="L111">        java.awt.geom.AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L112">        g.translate(x, y);</span>
+<span class="nc" id="L113">        g.scale(k, k);</span>
+<span class="nc" id="L114">        g.translate(-x, -y);</span>
+<span class="nc" id="L115">        dibujarBase(g, x, y, codigo, alterno, mirando, patada, aura, t);</span>
+<span class="nc" id="L116">        g.setTransform(original);</span>
+<span class="nc" id="L117">    }</span>
+
+    private static void dibujarBase(Graphics2D g, double x, double y, String codigo, boolean alterno,
+                                    int mirando, double patada,
+                                    String aura, double t) {
+<span class="nc" id="L122">        Color[] c = colores(codigo, alterno);</span>
+<span class="nc" id="L123">        Color jersey = c[0];</span>
+<span class="nc" id="L124">        Color adorno = c[1];</span>
+<span class="nc" id="L125">        Color pantaloneta = c[2];</span>
+<span class="nc" id="L126">        Color medias = c[3];</span>
+<span class="nc" id="L127">        Color piel = c[4];</span>
+<span class="nc" id="L128">        Color pelo = c[5];</span>
+<span class="nc" id="L129">        int m = mirando;</span>
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (!aura.isEmpty()) {</span>
+<span class="nc" id="L132">            dibujarAura(g, x, y, aura, t);</span>
+        }
+
+        // Piernas y zapatos
+<span class="nc" id="L136">        double cadera = y + 58;</span>
+<span class="nc" id="L137">        double atrasX = x - m * 16;</span>
+<span class="nc" id="L138">        double atrasY = y + 74;</span>
+<span class="nc" id="L139">        double frenteX = x + m * (14 + 46 * patada);</span>
+<span class="nc" id="L140">        double frenteY = y + 74 - 26 * patada;</span>
+<span class="nc" id="L141">        g.setStroke(new BasicStroke(9f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));</span>
+<span class="nc" id="L142">        g.setColor(medias);</span>
+<span class="nc" id="L143">        g.draw(new Line2D.Double(x - m * 7, cadera, atrasX, atrasY - 4));</span>
+<span class="nc" id="L144">        g.draw(new Line2D.Double(x + m * 7, cadera, frenteX, frenteY - 4));</span>
+<span class="nc" id="L145">        zapato(g, atrasX, atrasY, m, jersey, adorno, true);</span>
+
+        // Cuerpo
+<span class="nc" id="L148">        RoundRectangle2D torso = new RoundRectangle2D.Double(x - 25, y + 34, 50, 32, 14, 14);</span>
+<span class="nc" id="L149">        g.setColor(jersey);</span>
+<span class="nc" id="L150">        g.fill(torso);</span>
+<span class="nc" id="L151">        g.setColor(adorno);</span>
+<span class="nc bnc" id="L152" title="All 4 branches missed.">        if (&quot;CAMERUN&quot;.equals(codigo) || &quot;COREA&quot;.equals(codigo)) {</span>
+<span class="nc" id="L153">            g.fill(new RoundRectangle2D.Double(x - 25, y + 48, 50, 7, 3, 3));</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (&quot;EEUU&quot;.equals(codigo)) {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            g.setColor(alterno ? Color.WHITE : new Color(0xC8, 0x10, 0x2E));</span>
+<span class="nc" id="L156">            g.fill(new RoundRectangle2D.Double(x - 25, y + 48, 50, 6, 3, 3));</span>
+        } else {
+<span class="nc" id="L158">            g.setColor(Estilo.conAlfa(adorno, 220));</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            for (int i = -2; i &lt;= 2; i++) {</span>
+<span class="nc" id="L160">                g.fill(new RoundRectangle2D.Double(x + i * 10 - 2.5, y + 38, 5, 26, 3, 3));</span>
+            }
+        }
+<span class="nc" id="L163">        g.setColor(new Color(0, 0, 0, 55));</span>
+<span class="nc" id="L164">        g.setStroke(new BasicStroke(1.6f));</span>
+<span class="nc" id="L165">        g.draw(torso);</span>
+<span class="nc" id="L166">        g.setColor(pantaloneta);</span>
+<span class="nc" id="L167">        g.fill(new RoundRectangle2D.Double(x - 24, y + 60, 48, 15, 8, 8));</span>
+
+        // Pie que patea (delante del cuerpo)
+<span class="nc" id="L170">        zapato(g, frenteX, frenteY, m, jersey, adorno, false);</span>
+
+        // Cabeza
+<span class="nc" id="L173">        double rad = RADIO;</span>
+<span class="nc" id="L174">        Shape cabeza = new Ellipse2D.Double(x - rad, y - rad, rad * 2, rad * 2);</span>
+        // Oreja
+<span class="nc" id="L176">        g.setColor(Estilo.mezclar(piel, -0.12));</span>
+<span class="nc" id="L177">        g.fill(new Ellipse2D.Double(x - m * 41 - 7, y - 4, 14, 22));</span>
+<span class="nc" id="L178">        g.setColor(Estilo.mezclar(piel, -0.35));</span>
+<span class="nc" id="L179">        g.fill(new Ellipse2D.Double(x - m * 41 - 3.5, y + 1, 7, 12));</span>
+<span class="nc" id="L180">        g.setColor(piel);</span>
+<span class="nc" id="L181">        g.fill(cabeza);</span>
+
+        // Pelo (recortado dentro de la cabeza)
+<span class="nc" id="L184">        Shape clip = g.getClip();</span>
+<span class="nc" id="L185">        g.clip(cabeza);</span>
+<span class="nc" id="L186">        pelo(g, x, y, m, codigo, pelo);</span>
+<span class="nc" id="L187">        g.setClip(clip);</span>
+
+<span class="nc" id="L189">        cara(g, x, y, m, piel);</span>
+
+        // Contorno de la cabeza
+<span class="nc" id="L192">        g.setColor(Estilo.mezclar(piel, -0.62));</span>
+<span class="nc" id="L193">        g.setStroke(new BasicStroke(3.6f));</span>
+<span class="nc" id="L194">        g.draw(cabeza);</span>
+<span class="nc" id="L195">    }</span>
+
+    private static void zapato(Graphics2D g, double x, double y, int m, Color jersey, Color adorno, boolean atras) {
+        // El zapato mira hacia donde mira el jugador
+<span class="nc" id="L199">        double ancho = 38;</span>
+<span class="nc" id="L200">        double alto = 19;</span>
+<span class="nc" id="L201">        double cx = x + m * 6;</span>
+<span class="nc" id="L202">        Shape suela = new RoundRectangle2D.Double(cx - ancho / 2, y + 2, ancho, 7, 6, 6);</span>
+<span class="nc" id="L203">        Shape bota = new Ellipse2D.Double(cx - ancho / 2, y - alto / 2 - 2, ancho, alto);</span>
+<span class="nc" id="L204">        g.setColor(new Color(0x22, 0x26, 0x33));</span>
+<span class="nc" id="L205">        g.fill(suela);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        Color base = atras ? new Color(0xE8, 0xEA, 0xF0) : Color.WHITE;</span>
+<span class="nc" id="L207">        g.setColor(base);</span>
+<span class="nc" id="L208">        g.fill(bota);</span>
+<span class="nc" id="L209">        g.setColor(Estilo.mezclar(adorno, 0));</span>
+<span class="nc bnc" id="L210" title="All 4 branches missed.">        g.fill(new Arc2D.Double(cx - ancho / 2 + (m &gt; 0 ? 4 : ancho / 2 - 2), y - alto / 2 + 1, ancho / 2 - 2, alto - 3, m &gt; 0 ? 100 : -80, 160, Arc2D.CHORD));</span>
+<span class="nc" id="L211">        g.setColor(new Color(0x23, 0x2B, 0x46));</span>
+<span class="nc" id="L212">        g.setStroke(new BasicStroke(2f));</span>
+<span class="nc" id="L213">        g.draw(bota);</span>
+<span class="nc" id="L214">    }</span>
+
+    private static void pelo(Graphics2D g, double x, double y, int m, String codigo, Color pelo) {
+<span class="nc" id="L217">        g.setColor(pelo);</span>
+<span class="nc" id="L218">        Path2D.Double casco = new Path2D.Double();</span>
+        double lineaPelo;
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (&quot;CAMERUN&quot;.equals(codigo)) {</span>
+<span class="nc" id="L221">            lineaPelo = y - 30;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        } else if (&quot;NIGERIA&quot;.equals(codigo)) {</span>
+<span class="nc" id="L223">            lineaPelo = y - 22;</span>
+        } else {
+<span class="nc" id="L225">            lineaPelo = y - 17;</span>
+        }
+<span class="nc" id="L227">        casco.moveTo(x - 60, y - 70);</span>
+<span class="nc" id="L228">        casco.lineTo(x + 60, y - 70);</span>
+<span class="nc" id="L229">        casco.lineTo(x + 60, lineaPelo);</span>
+        // Flequillo ondulado
+<span class="nc" id="L231">        int mechas = 7;</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        for (int i = 0; i &lt;= mechas; i++) {</span>
+<span class="nc" id="L233">            double px = x + 60 - i * (120.0 / mechas);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            double desvio = (i % 2 == 0) ? 0 : 10;</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            double barrido = &quot;EEUU&quot;.equals(codigo) ? (m * (i - mechas / 2.0) * -1.8) : 0;</span>
+<span class="nc" id="L236">            casco.lineTo(px, lineaPelo + desvio + barrido);</span>
+        }
+<span class="nc" id="L238">        casco.closePath();</span>
+<span class="nc" id="L239">        g.fill(casco);</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (&quot;NIGERIA&quot;.equals(codigo)) {</span>
+<span class="nc" id="L241">            g.fill(new Ellipse2D.Double(x - 44, y - 62, 88, 44));   // pelo voluminoso</span>
+        }
+        // Patilla del lado de atrás
+<span class="nc" id="L244">        g.fill(new Ellipse2D.Double(x - m * 46 - 8, y - 20, 16, 30));</span>
+<span class="nc" id="L245">    }</span>
+
+    /**
+     * Cara sencilla y siempre igual: ojos fijos mirando al frente y una rayita de boca.
+     */
+    private static void cara(Graphics2D g, double x, double y, int m, Color piel) {
+<span class="nc" id="L251">        double px = m * 3.2;</span>
+<span class="nc" id="L252">        double py = 0;</span>
+
+<span class="nc" id="L254">        double[] ojosX = {x + m * 6, x + m * 29};</span>
+<span class="nc" id="L255">        double ojoY = y - 3;</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        for (int i = 0; i &lt; 2; i++) {</span>
+<span class="nc" id="L257">            double ex = ojosX[i];</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">            double ancho = i == 0 ? 17 : 19;</span>
+<span class="nc" id="L259">            double alto = 23;</span>
+<span class="nc" id="L260">            Ellipse2D.Double ojo = new Ellipse2D.Double(ex - ancho / 2, ojoY - alto / 2, ancho, alto);</span>
+<span class="nc" id="L261">            g.setColor(Color.WHITE);</span>
+<span class="nc" id="L262">            g.fill(ojo);</span>
+<span class="nc" id="L263">            g.setColor(new Color(0x20, 0x20, 0x30));</span>
+<span class="nc" id="L264">            g.fill(new Ellipse2D.Double(ex - 5.6 + px, ojoY - 5.6 + py + 1, 11.2, 11.2));</span>
+<span class="nc" id="L265">            g.setColor(new Color(0x30, 0x20, 0x20));</span>
+<span class="nc" id="L266">            g.setStroke(new BasicStroke(2f));</span>
+<span class="nc" id="L267">            g.draw(ojo);</span>
+        }
+
+        // Boca: una rayita
+<span class="nc" id="L271">        g.setColor(new Color(0x3A, 0x14, 0x14));</span>
+<span class="nc" id="L272">        g.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));</span>
+<span class="nc" id="L273">        double bx = x + m * 24;</span>
+<span class="nc" id="L274">        g.draw(new Line2D.Double(bx - 8, y + 28, bx + 8, y + 28));</span>
+<span class="nc" id="L275">    }</span>
+
+    private static void dibujarAura(Graphics2D g, double x, double y, String aura, double t) {
+<span class="nc" id="L278">        Color color = DibujoBalon.colorEfecto(aura);</span>
+<span class="nc" id="L279">        double cy = y + 20;</span>
+<span class="nc" id="L280">        double pulso = 1 + 0.08 * Math.sin(t * 0.35);</span>
+<span class="nc" id="L281">        float radio = (float) (92 * pulso);</span>
+<span class="nc" id="L282">        g.setPaint(new RadialGradientPaint((float) x, (float) cy, radio, new float[]{0f, 0.55f, 1f},</span>
+<span class="nc" id="L283">                new Color[]{Estilo.conAlfa(color, 30), Estilo.conAlfa(color, 120), Estilo.conAlfa(color, 0)}));</span>
+<span class="nc" id="L284">        g.fill(new Ellipse2D.Double(x - radio, cy - radio, radio * 2, radio * 2));</span>
+        // Chispas que giran alrededor
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        for (int i = 0; i &lt; 8; i++) {</span>
+<span class="nc" id="L287">            double a = t * 0.08 + i * Math.PI / 4;</span>
+<span class="nc" id="L288">            double rr = 62 + 10 * Math.sin(t * 0.2 + i);</span>
+<span class="nc" id="L289">            double sx = x + Math.cos(a) * rr;</span>
+<span class="nc" id="L290">            double sy = cy + Math.sin(a) * rr * 0.95;</span>
+<span class="nc" id="L291">            g.setColor(Estilo.conAlfa(Estilo.mezclar(color, 0.5), 200));</span>
+<span class="nc" id="L292">            g.fill(new Ellipse2D.Double(sx - 3, sy - 3, 6, 6));</span>
+        }
+        // Llamas / aro
+<span class="nc" id="L295">        g.setColor(Estilo.conAlfa(color, 150));</span>
+<span class="nc" id="L296">        g.setStroke(new BasicStroke(3f));</span>
+<span class="nc" id="L297">        g.draw(new Ellipse2D.Double(x - 60 * pulso, cy - 64 * pulso, 120 * pulso, 128 * pulso));</span>
+<span class="nc" id="L298">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,6 +1,7 @@
 package domain;
-import util.RegistroErrores;
+
 import exceptions.DOPOSoccerExcepcion;
+import util.RegistroErrores;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * Un partido de DOPOSoccer. Aquí vive todo lo que pasa mientras se juega: la
  * cuenta regresiva del inicio, el cronómetro, los goles, la celebración, la
  * pausa, la muerte súbita y el cierre con ganador y puntos.
- *
+ * <p>
  * La interfaz llama a actualizar() 60 veces por segundo y dibuja lo que este
  * objeto le cuenta; el partido nunca sabe cómo se ve.
  *
@@ -31,7 +32,9 @@ public class Partido {
     public static final int TICKS_POR_SEGUNDO = 60;
     public static final int TICKS_CUENTA = 3 * TICKS_POR_SEGUNDO;
     public static final int TICKS_CELEBRACION = 2 * TICKS_POR_SEGUNDO;
-    /** Cuánto dura el balón flotando sobre la cabeza antes de salir lanzado con el poder. */
+    /**
+     * Cuánto dura el balón flotando sobre la cabeza antes de salir lanzado con el poder.
+     */
     public static final int TICKS_CARGA_PODER = 40;
     public static final int PUNTOS_GANADOR = 100;
     public static final int PUNTOS_PERDEDOR = 25;
@@ -115,7 +118,9 @@ public class Partido {
 
     // el reloj del juego
 
-    /** Avanza el partido un tick (la interfaz lo llama 60 veces por segundo). */
+    /**
+     * Avanza el partido un tick (la interfaz lo llama 60 veces por segundo).
+     */
     public void actualizar() {
         if (ESTADO_CUENTA.equals(estado)) {
             limpiarPedidos();
@@ -195,7 +200,9 @@ public class Partido {
         }
     }
 
-    /** Mientras se carga el tiro: el balón se acerca a la frente (delante de la cara) y, al terminar, sale lanzado. */
+    /**
+     * Mientras se carga el tiro: el balón se acerca a la frente (delante de la cara) y, al terminar, sale lanzado.
+     */
     private void cargarTiroDePoder() {
         // Recomendación de la IA generativa para la carga del tiro de poder: en vez de teletransportar
         // el balón, cada tick se acerca un 30 % de la distancia que le falta a la frente del jugador.
@@ -205,7 +212,7 @@ public class Partido {
         double objetivoX = j.getX() + j.getMirando() * (Jugador.RADIO_CABEZA + Balon.RADIO + 4);
         double objetivoY = j.getY() - 8;
         balon.setPosicion(balon.getX() + (objetivoX - balon.getX()) * 0.3,
-                          balon.getY() + (objetivoY - balon.getY()) * 0.3);
+                balon.getY() + (objetivoY - balon.getY()) * 0.3);
         balon.setVelocidad(0, 0);
         ticksCargando++;
         if (ticksCargando >= TICKS_CARGA_PODER) {
@@ -215,7 +222,9 @@ public class Partido {
         }
     }
 
-    /** Si el balón se queda quieto encima del travesaño, lo empujamos de vuelta a la cancha. */
+    /**
+     * Si el balón se queda quieto encima del travesaño, lo empujamos de vuelta a la cancha.
+     */
     private void evitarAtasco(boolean encimaDelTravesaño) {
         // Recomendación de la IA generativa para evitar el atasco sobre el travesaño: si el balón se
         // queda casi quieto encima del arco durante 90 ticks, se le da un empujón de vuelta a la
@@ -232,7 +241,9 @@ public class Partido {
         }
     }
 
-    /** Si dos cabezas se chocan de lado, se separan. */
+    /**
+     * Si dos cabezas se chocan de lado, se separan.
+     */
     private void separarJugadores() {
         // Recomendación de la IA generativa para separar a los jugadores cuando chocan de lado: se
         // calcula cuánto se solapan y cada uno se corre la mitad en sentido contrario.
@@ -320,7 +331,9 @@ public class Partido {
         jugador2.sumarPuntos(puntosJugador2);
     }
 
-    /** Los jugadores y el balón vuelven al centro, y el balón cae desde arriba. */
+    /**
+     * Los jugadores y el balón vuelven al centro, y el balón cae desde arriba.
+     */
     private void reubicarTodo() {
         jugador1.reubicar();
         jugador2.reubicar();
@@ -333,7 +346,9 @@ public class Partido {
 
     // pausa y salida
 
-    /** Pone el partido en pausa (solo si está jugando o en la cuenta atrás). */
+    /**
+     * Pone el partido en pausa (solo si está jugando o en la cuenta atrás).
+     */
     public void pausar() {
         if (ESTADO_EN_CURSO.equals(estado) || ESTADO_CUENTA.equals(estado)) {
             estadoAntesDePausa = estado;
@@ -342,14 +357,18 @@ public class Partido {
         }
     }
 
-    /** Quita la pausa y sigue donde se había quedado. */
+    /**
+     * Quita la pausa y sigue donde se había quedado.
+     */
     public void reanudar() {
         if (ESTADO_PAUSADO.equals(estado)) {
             estado = estadoAntesDePausa;
         }
     }
 
-    /** Termina el partido antes de tiempo: no hay ganador ni puntos. */
+    /**
+     * Termina el partido antes de tiempo: no hay ganador ni puntos.
+     */
     public void abandonar() {
         if (!ESTADO_TERMINADO.equals(estado)) {
             estado = ESTADO_ABANDONADO;
@@ -358,7 +377,9 @@ public class Partido {
 
     // consultas
 
-    /** @return el estado actual (ver las constantes ESTADO_...) */
+    /**
+     * @return el estado actual (ver las constantes ESTADO_...)
+     */
     public String getEstado() {
         return estado;
     }
@@ -379,17 +400,23 @@ public class Partido {
         return muerteSubita;
     }
 
-    /** @return segundos que faltan (solo tiene sentido en partidos por tiempo) */
+    /**
+     * @return segundos que faltan (solo tiene sentido en partidos por tiempo)
+     */
     public int getSegundosRestantes() {
         return (int) Math.ceil(Math.max(0, ticksRestantes) / (double) TICKS_POR_SEGUNDO);
     }
 
-    /** @return segundos que lleva jugándose el partido */
+    /**
+     * @return segundos que lleva jugándose el partido
+     */
     public int getSegundosJugados() {
         return ticksJugados / TICKS_POR_SEGUNDO;
     }
 
-    /** @return el número que se muestra en la cuenta atrás (3, 2, 1) */
+    /**
+     * @return el número que se muestra en la cuenta atrás (3, 2, 1)
+     */
     public int getNumeroCuenta() {
         return (int) Math.ceil(Math.max(0, ticksCuenta) / (double) TICKS_POR_SEGUNDO);
     }
@@ -402,7 +429,9 @@ public class Partido {
         return ticksCelebracion;
     }
 
-    /** @return el jugador que está cargando su tiro de poder (null si nadie) */
+    /**
+     * @return el jugador que está cargando su tiro de poder (null si nadie)
+     */
     public Jugador getJugadorCargando() {
         return jugadorCargando;
     }
@@ -411,7 +440,9 @@ public class Partido {
         return ultimoAnotador;
     }
 
-    /** @return el ganador, o null si todavía no hay (o si se abandonó) */
+    /**
+     * @return el ganador, o null si todavía no hay (o si se abandonó)
+     */
     public Jugador getGanador() {
         return ganador;
     }
@@ -452,7 +483,9 @@ public class Partido {
         return porteriaDerecha;
     }
 
-    /** @return los balones falsos del poder de Estados Unidos (puede estar vacía) */
+    /**
+     * @return los balones falsos del poder de Estados Unidos (puede estar vacía)
+     */
     public List<Balon> getSeñuelos() {
         return señuelos;
     }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaConfigPartido.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaConfigPartido.java</span></div><h1>PantallaConfigPartido.java</h1><pre class="source lang-java linenums">package presentation;
+
+import domain.Cancha;
+import domain.Partido;
+
+import java.awt.*;
+
+/**
+ * Antes de empezar: tipo de partido (por tiempo o por goles), cuánto dura o a
+ * cuántos goles se juega, y el tamaño de la ventana de juego.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+class PantallaConfigPartido extends PantallaBase {
+
+    PantallaConfigPartido(VentanaPrincipal ventana) {
+<span class="nc" id="L18">        super(ventana, false);</span>
+<span class="nc" id="L19">    }</span>
+
+    @Override
+    protected void pintar(Graphics2D g, double t) {
+<span class="nc" id="L23">        velo(g, 135);</span>
+<span class="nc" id="L24">        titulo(g, &quot;CONFIGURA EL PARTIDO&quot;, 78);</span>
+<span class="nc" id="L25">        tarjeta(g, 120, 100, 760, 366, Estilo.AZUL_CLARO, false);</span>
+
+<span class="nc" id="L27">        boolean porTiempo = Partido.TIPO_TIEMPO.equals(ventana.getTipo());</span>
+
+        // Tipo de partido
+<span class="nc" id="L30">        Estilo.textoCentrado(g, &quot;TIPO DE PARTIDO&quot;, Estilo.fuente(22), 500, 142, new Color(0xBF, 0xD6, 0xFF));</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        boton(g, &quot;POR TIEMPO&quot;, porTiempo ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 190, 156, 290, 54, true,</span>
+<span class="nc" id="L32">                () -&gt; ventana.setTipo(Partido.TIPO_TIEMPO));</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        boton(g, &quot;POR GOLES&quot;, !porTiempo ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 520, 156, 290, 54, true,</span>
+<span class="nc" id="L34">                () -&gt; ventana.setTipo(Partido.TIPO_GOLES));</span>
+
+        // Valor
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        String etiqueta = porTiempo ? &quot;MINUTOS DE JUEGO&quot; : &quot;GOLES PARA GANAR&quot;;</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        int valor = porTiempo ? ventana.getMinutos() : ventana.getGoles();</span>
+<span class="nc" id="L39">        Estilo.textoCentrado(g, etiqueta, Estilo.fuente(22), 500, 252, new Color(0xBF, 0xD6, 0xFF));</span>
+<span class="nc" id="L40">        boton(g, &quot;−&quot;, Estilo.NARANJA, 330, 266, 70, 62, true, () -&gt; ventana.cambiarValor(-1));</span>
+<span class="nc" id="L41">        boton(g, &quot;+&quot;, Estilo.NARANJA, 600, 266, 70, 62, true, () -&gt; ventana.cambiarValor(1));</span>
+<span class="nc" id="L42">        Estilo.textoContorno(g, String.valueOf(valor), Estilo.fuente(64), 500, 322,</span>
+                Estilo.AMARILLO, Estilo.NARANJA, new Color(0x4A, 0x20, 0x00), 5f);
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        String pista = porTiempo</span>
+<span class="nc" id="L45">                ? &quot;Entre 1 y 10 minutos. Si hay empate, gana el siguiente gol (muerte súbita).&quot;</span>
+<span class="nc" id="L46">                : &quot;Entre 1 y 20 goles. Gana quien llegue primero.&quot;;</span>
+<span class="nc" id="L47">        texto(g, pista, 15, 500, 352, new Color(0xD8, 0xE6, 0xFF));</span>
+
+        // Resolución
+<span class="nc" id="L50">        Estilo.textoCentrado(g, &quot;TAMAÑO DE LA VENTANA&quot;, Estilo.fuente(22), 500, 392, new Color(0xBF, 0xD6, 0xFF));</span>
+<span class="nc" id="L51">        int n = Cancha.cantidadResoluciones();</span>
+<span class="nc" id="L52">        double ancho = 220;</span>
+<span class="nc" id="L53">        double sep = 18;</span>
+<span class="nc" id="L54">        double inicio = 500 - (n * ancho + (n - 1) * sep) / 2;</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        for (int i = 0; i &lt; n; i++) {</span>
+<span class="nc" id="L56">            final int indice = i;</span>
+<span class="nc" id="L57">            String nombre = Cancha.nombreResolucion(i);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            boolean sel = ventana.getResolucion() == i;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            boton(g, nombre, sel ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), inicio + i * (ancho + sep), 404,</span>
+<span class="nc" id="L60">                    ancho, 46, true, () -&gt; ventana.setResolucion(indice));</span>
+        }
+
+<span class="nc" id="L63">        boton(g, &quot;VOLVER&quot;, Estilo.ROJO, 40, 482, 200, 56, true, ventana::irAPersonajes);</span>
+<span class="nc" id="L64">        boton(g, &quot;¡A JUGAR!&quot;, Estilo.VERDE, 700, 482, 260, 56, true, ventana::iniciarPartido);</span>
+<span class="nc" id="L65">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

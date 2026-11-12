@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Partido.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Partido.java</span></div><h1>Partido.java</h1><pre class="source lang-java linenums">package domain;
+
+import exceptions.DOPOSoccerExcepcion;
+import util.RegistroErrores;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Un partido de DOPOSoccer. Aquí vive todo lo que pasa mientras se juega: la
+ * cuenta regresiva del inicio, el cronómetro, los goles, la celebración, la
+ * pausa, la muerte súbita y el cierre con ganador y puntos.
+ * &lt;p&gt;
+ * La interfaz llama a actualizar() 60 veces por segundo y dibuja lo que este
+ * objeto le cuenta; el partido nunca sabe cómo se ve.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class Partido {
+
+    public static final String TIPO_TIEMPO = &quot;TIEMPO&quot;;
+    public static final String TIPO_GOLES = &quot;GOLES&quot;;
+
+    public static final String ESTADO_CUENTA = &quot;CUENTA&quot;;
+    public static final String ESTADO_EN_CURSO = &quot;EN_CURSO&quot;;
+    public static final String ESTADO_GOL = &quot;GOL&quot;;
+    public static final String ESTADO_PAUSADO = &quot;PAUSADO&quot;;
+    public static final String ESTADO_TERMINADO = &quot;TERMINADO&quot;;
+    public static final String ESTADO_ABANDONADO = &quot;ABANDONADO&quot;;
+
+    public static final int TICKS_POR_SEGUNDO = 60;
+    public static final int TICKS_CUENTA = 3 * TICKS_POR_SEGUNDO;
+    public static final int TICKS_CELEBRACION = 2 * TICKS_POR_SEGUNDO;
+    /**
+     * Cuánto dura el balón flotando sobre la cabeza antes de salir lanzado con el poder.
+     */
+    public static final int TICKS_CARGA_PODER = 40;
+    public static final int PUNTOS_GANADOR = 100;
+    public static final int PUNTOS_PERDEDOR = 25;
+
+    private final Jugador jugador1;
+    private final Jugador jugador2;
+    private final Cancha cancha;
+    private final Balon balon;
+    private final Marcador marcador;
+    private final Porteria porteriaIzquierda;
+    private final Porteria porteriaDerecha;
+<span class="fc" id="L49">    private final List&lt;Balon&gt; señuelos = new ArrayList&lt;Balon&gt;();</span>
+
+    private final String tipo;
+    private final int minutos;
+    private final int golesParaGanar;
+
+    private String estado;
+    private String estadoAntesDePausa;
+    private int ticksCuenta;
+    private int ticksRestantes;
+    private int ticksJugados;
+    private int ticksCelebracion;
+    private int ticksSeñuelos;
+    private int ticksAtasco;
+    private Jugador jugadorCargando;
+    private int ticksCargando;
+    private boolean muerteSubita;
+    private boolean finalPendiente;
+    private Jugador ultimoAnotador;
+    private Jugador ganador;
+    private int puntosJugador1;
+    private int puntosJugador2;
+
+    /**
+     * Crea el partido, con el marcador en 0 - 0 y las barras de poder vacías.
+     *
+     * @param jugador1 el jugador del arco izquierdo
+     * @param jugador2 el jugador del arco derecho
+     * @param tipo     TIPO_TIEMPO o TIPO_GOLES
+     * @param valor    minutos (1 a 10) si es por tiempo, o goles para ganar (1 a 20) si es por goles
+     * @param cancha   la cancha donde se juega
+     * @throws DOPOSoccerExcepcion si falta algo o el valor no es válido
+     */
+    public Partido(Jugador jugador1, Jugador jugador2, String tipo, int valor, Cancha cancha)
+<span class="fc" id="L83">            throws DOPOSoccerExcepcion {</span>
+<span class="pc bpc" id="L84" title="1 of 6 branches missed.">        if (jugador1 == null || jugador2 == null || cancha == null) {</span>
+<span class="fc" id="L85">            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.JUGADORES_VACIOS));</span>
+        }
+<span class="pc bpc" id="L87" title="2 of 4 branches missed.">        if (jugador1.getPersonaje() == null || jugador2.getPersonaje() == null) {</span>
+<span class="nc" id="L88">            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.PERSONAJE_VACIO));</span>
+        }
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (TIPO_TIEMPO.equals(tipo)) {</span>
+<span class="fc bfc" id="L91" title="All 4 branches covered.">            if (valor &lt; 1 || valor &gt; 10) {</span>
+<span class="fc" id="L92">                throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.MINUTOS_INVALIDOS));</span>
+            }
+<span class="fc" id="L94">            this.minutos = valor;</span>
+<span class="fc" id="L95">            this.golesParaGanar = 0;</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        } else if (TIPO_GOLES.equals(tipo)) {</span>
+<span class="fc bfc" id="L97" title="All 4 branches covered.">            if (valor &lt; 1 || valor &gt; 20) {</span>
+<span class="fc" id="L98">                throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.GOLES_INVALIDOS));</span>
+            }
+<span class="fc" id="L100">            this.minutos = 0;</span>
+<span class="fc" id="L101">            this.golesParaGanar = valor;</span>
+        } else {
+<span class="fc" id="L103">            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.TIPO_PARTIDO_INVALIDO));</span>
+        }
+<span class="fc" id="L105">        this.jugador1 = jugador1;</span>
+<span class="fc" id="L106">        this.jugador2 = jugador2;</span>
+<span class="fc" id="L107">        this.cancha = cancha;</span>
+<span class="fc" id="L108">        this.tipo = tipo;</span>
+<span class="fc" id="L109">        this.balon = new Balon();</span>
+<span class="fc" id="L110">        this.marcador = new Marcador(jugador1, jugador2);</span>
+<span class="fc" id="L111">        this.porteriaIzquierda = new Porteria(Porteria.IZQUIERDA);</span>
+<span class="fc" id="L112">        this.porteriaDerecha = new Porteria(Porteria.DERECHA);</span>
+<span class="fc" id="L113">        this.ticksRestantes = minutos * 60 * TICKS_POR_SEGUNDO;</span>
+<span class="fc" id="L114">        this.ticksCuenta = TICKS_CUENTA;</span>
+<span class="fc" id="L115">        this.estado = ESTADO_CUENTA;</span>
+<span class="fc" id="L116">        reubicarTodo();</span>
+<span class="fc" id="L117">    }</span>
+
+    // el reloj del juego
+
+    /**
+     * Avanza el partido un tick (la interfaz lo llama 60 veces por segundo).
+     */
+    public void actualizar() {
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (ESTADO_CUENTA.equals(estado)) {</span>
+<span class="fc" id="L126">            limpiarPedidos();</span>
+<span class="fc" id="L127">            ticksCuenta--;</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">            if (ticksCuenta &lt;= 0) {</span>
+<span class="fc" id="L129">                estado = ESTADO_EN_CURSO;</span>
+            }
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        } else if (ESTADO_GOL.equals(estado)) {</span>
+<span class="fc" id="L132">            limpiarPedidos();</span>
+<span class="fc" id="L133">            balon.mover();</span>
+<span class="fc" id="L134">            moverSeñuelos();</span>
+<span class="fc" id="L135">            ticksCelebracion--;</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">            if (ticksCelebracion &lt;= 0) {</span>
+<span class="fc" id="L137">                terminarCelebracion();</span>
+            }
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        } else if (ESTADO_EN_CURSO.equals(estado)) {</span>
+<span class="fc" id="L140">            jugar();</span>
+        }
+<span class="fc" id="L142">    }</span>
+
+    private void jugar() {
+        // Recomendación de la IA generativa para el orden de los contactos: se alterna quién revisa
+        // primero según si el tick es par o impar, para que ningún jugador tenga ventaja cuando los dos
+        // tocan el balón a la vez.
+<span class="fc" id="L148">        jugador1.mirarHacia(jugador2.getX());</span>
+<span class="fc" id="L149">        jugador2.mirarHacia(jugador1.getX());</span>
+<span class="fc" id="L150">        jugador1.actualizar();</span>
+<span class="fc" id="L151">        jugador2.actualizar();</span>
+<span class="fc" id="L152">        separarJugadores();</span>
+
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (jugadorCargando != null) {</span>
+<span class="fc" id="L155">            cargarTiroDePoder();</span>
+        } else {
+<span class="fc" id="L157">            balon.mover();</span>
+<span class="fc" id="L158">            moverSeñuelos();</span>
+
+            // Alternamos quién revisa primero el contacto para que ninguno tenga ventaja.
+<span class="fc bfc" id="L161" title="All 2 branches covered.">            if (ticksJugados % 2 == 0) {</span>
+<span class="fc" id="L162">                tocarBalon(jugador1);</span>
+<span class="fc" id="L163">                tocarBalon(jugador2);</span>
+            } else {
+<span class="fc" id="L165">                tocarBalon(jugador2);</span>
+<span class="fc" id="L166">                tocarBalon(jugador1);</span>
+            }
+
+<span class="fc" id="L169">            boolean encima = porteriaIzquierda.rebotar(balon);</span>
+<span class="pc bpc" id="L170" title="1 of 4 branches missed.">            encima = porteriaDerecha.rebotar(balon) || encima;</span>
+<span class="fc" id="L171">            evitarAtasco(encima);</span>
+        }
+
+<span class="fc" id="L174">        ticksJugados++;</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (porteriaIzquierda.esGol(balon)) {</span>
+<span class="nc" id="L176">            registrarGol(porteriaIzquierda);</span>
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">        } else if (porteriaDerecha.esGol(balon)) {</span>
+<span class="nc" id="L178">            registrarGol(porteriaDerecha);</span>
+<span class="fc bfc" id="L179" title="All 4 branches covered.">        } else if (TIPO_TIEMPO.equals(tipo) &amp;&amp; !muerteSubita) {</span>
+<span class="fc" id="L180">            ticksRestantes--;</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">            if (ticksRestantes &lt;= 0) {</span>
+<span class="fc" id="L182">                terminarPorTiempo();</span>
+            }
+        }
+<span class="fc" id="L185">    }</span>
+
+    private void tocarBalon(Jugador jugador) {
+<span class="fc bfc" id="L188" title="All 2 branches covered.">        if (!jugador.resolverContacto(balon)) {</span>
+<span class="fc" id="L189">            return;</span>
+        }
+<span class="pc bpc" id="L191" title="1 of 4 branches missed.">        if (jugador.isPoderActivo() &amp;&amp; jugadorCargando == null) {</span>
+            // Con el poder activo, al tocar el balón no sale disparado de una vez:
+            // primero se pone delante de la frente del jugador y ahí se carga el tiro.
+<span class="fc" id="L194">            jugadorCargando = jugador;</span>
+<span class="fc" id="L195">            ticksCargando = 0;</span>
+<span class="fc" id="L196">            balon.setVelocidad(0, 0);</span>
+<span class="fc" id="L197">            balon.setEfecto(jugador.getPersonaje().getPoder().getCodigo(), TICKS_CARGA_PODER + 5);</span>
+        } else {
+<span class="fc" id="L199">            balon.terminarEfecto();   // chocar con un jugador acaba el poder</span>
+        }
+<span class="fc" id="L201">    }</span>
+
+    /**
+     * Mientras se carga el tiro: el balón se acerca a la frente (delante de la cara) y, al terminar, sale lanzado.
+     */
+    private void cargarTiroDePoder() {
+        // Recomendación de la IA generativa para la carga del tiro de poder: en vez de teletransportar
+        // el balón, cada tick se acerca un 30 % de la distancia que le falta a la frente del jugador.
+        // Así se ve como un deslizamiento suave y no un salto.
+<span class="fc" id="L210">        Jugador j = jugadorCargando;</span>
+        // Delante de la cara, a la altura de la frente (un poco arriba del centro de la cabeza)
+<span class="fc" id="L212">        double objetivoX = j.getX() + j.getMirando() * (Jugador.RADIO_CABEZA + Balon.RADIO + 4);</span>
+<span class="fc" id="L213">        double objetivoY = j.getY() - 8;</span>
+<span class="fc" id="L214">        balon.setPosicion(balon.getX() + (objetivoX - balon.getX()) * 0.3,</span>
+<span class="fc" id="L215">                balon.getY() + (objetivoY - balon.getY()) * 0.3);</span>
+<span class="fc" id="L216">        balon.setVelocidad(0, 0);</span>
+<span class="fc" id="L217">        ticksCargando++;</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">        if (ticksCargando &gt;= TICKS_CARGA_PODER) {</span>
+<span class="fc" id="L219">            balon.setPosicion(objetivoX, objetivoY);</span>
+<span class="fc" id="L220">            jugadorCargando = null;</span>
+<span class="fc" id="L221">            j.usarPoder(this);</span>
+        }
+<span class="fc" id="L223">    }</span>
+
+    /**
+     * Si el balón se queda quieto encima del travesaño, lo empujamos de vuelta a la cancha.
+     */
+    private void evitarAtasco(boolean encimaDelTravesaño) {
+        // Recomendación de la IA generativa para evitar el atasco sobre el travesaño: si el balón se
+        // queda casi quieto encima del arco durante 90 ticks, se le da un empujón de vuelta a la
+        // cancha.
+<span class="pc bpc" id="L232" title="1 of 4 branches missed.">        if (encimaDelTravesaño &amp;&amp; Math.abs(balon.getVx()) &lt; 0.5) {</span>
+<span class="nc" id="L233">            ticksAtasco++;</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            if (ticksAtasco &gt; 90) {</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                double haciaElCentro = balon.getX() &lt; Cancha.ANCHO / 2.0 ? 1 : -1;</span>
+<span class="nc" id="L236">                balon.impulsar(haciaElCentro * 4, -3);</span>
+<span class="nc" id="L237">                ticksAtasco = 0;</span>
+<span class="nc" id="L238">            }</span>
+        } else {
+<span class="fc" id="L240">            ticksAtasco = 0;</span>
+        }
+<span class="fc" id="L242">    }</span>
+
+    /**
+     * Si dos cabezas se chocan de lado, se separan.
+     */
+    private void separarJugadores() {
+        // Recomendación de la IA generativa para separar a los jugadores cuando chocan de lado: se
+        // calcula cuánto se solapan y cada uno se corre la mitad en sentido contrario.
+<span class="fc" id="L250">        double dx = jugador2.getX() - jugador1.getX();</span>
+<span class="fc" id="L251">        double dy = Math.abs(jugador2.getY() - jugador1.getY());</span>
+<span class="fc" id="L252">        double minima = Jugador.RADIO_CABEZA * 1.8;</span>
+<span class="pc bpc" id="L253" title="2 of 4 branches missed.">        if (dy &lt; Jugador.RADIO_CABEZA * 1.2 &amp;&amp; Math.abs(dx) &lt; minima) {</span>
+<span class="nc" id="L254">            double falta = (minima - Math.abs(dx)) / 2;</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">            double signo = dx &gt;= 0 ? 1 : -1;</span>
+<span class="nc" id="L256">            jugador1.empujar(-signo * falta);</span>
+<span class="nc" id="L257">            jugador2.empujar(signo * falta);</span>
+        }
+<span class="fc" id="L259">    }</span>
+
+    private void moverSeñuelos() {
+<span class="fc bfc" id="L262" title="All 2 branches covered.">        if (!señuelos.isEmpty()) {</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">            for (Balon falso : señuelos) {</span>
+<span class="fc" id="L264">                falso.mover();</span>
+<span class="fc" id="L265">            }</span>
+<span class="fc" id="L266">            ticksSeñuelos--;</span>
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">            if (ticksSeñuelos &lt;= 0) {</span>
+<span class="nc" id="L268">                señuelos.clear();</span>
+            }
+        }
+<span class="fc" id="L271">    }</span>
+
+    private void limpiarPedidos() {
+<span class="fc" id="L274">        jugador1.limpiarPedidos();</span>
+<span class="fc" id="L275">        jugador2.limpiarPedidos();</span>
+<span class="fc" id="L276">    }</span>
+
+    // goles
+
+    /**
+     * Anota un gol en una portería: suma al otro jugador, le sube un cuarto de
+     * barra a quien lo recibió y arranca la celebración.
+     *
+     * @param porteria el arco donde entró el balón
+     */
+    public void registrarGol(Porteria porteria) {
+<span class="fc" id="L287">        balon.terminarEfecto();   // el poder se acaba al entrar en el arco</span>
+<span class="fc bfc" id="L288" title="All 2 branches covered.">        Jugador anotador = porteria == porteriaIzquierda ? jugador2 : jugador1;</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">        Jugador recibe = anotador == jugador1 ? jugador2 : jugador1;</span>
+<span class="fc" id="L290">        marcador.sumarGol(anotador);</span>
+<span class="fc" id="L291">        recibe.recibirGol();</span>
+<span class="fc" id="L292">        ultimoAnotador = anotador;</span>
+<span class="fc" id="L293">        estado = ESTADO_GOL;</span>
+<span class="fc" id="L294">        ticksCelebracion = TICKS_CELEBRACION;</span>
+
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        if (muerteSubita) {</span>
+<span class="fc" id="L297">            finalPendiente = true;</span>
+<span class="fc bfc" id="L298" title="All 4 branches covered.">        } else if (TIPO_GOLES.equals(tipo) &amp;&amp; marcador.getGoles(anotador) &gt;= golesParaGanar) {</span>
+<span class="fc" id="L299">            finalPendiente = true;</span>
+        }
+<span class="fc" id="L301">    }</span>
+
+    private void terminarCelebracion() {
+<span class="fc bfc" id="L304" title="All 2 branches covered.">        if (finalPendiente) {</span>
+<span class="fc" id="L305">            cerrarPartido(ultimoAnotador);</span>
+        } else {
+<span class="fc" id="L307">            reubicarTodo();</span>
+<span class="fc" id="L308">            estado = ESTADO_EN_CURSO;</span>
+        }
+<span class="fc" id="L310">    }</span>
+
+    private void terminarPorTiempo() {
+<span class="fc bfc" id="L313" title="All 2 branches covered.">        if (marcador.hayEmpate()) {</span>
+<span class="fc" id="L314">            muerteSubita = true;   // gana el primero que marque</span>
+        } else {
+<span class="fc" id="L316">            cerrarPartido(marcador.getGanador());</span>
+        }
+<span class="fc" id="L318">    }</span>
+
+    private void cerrarPartido(Jugador quienGano) {
+<span class="fc" id="L321">        ganador = quienGano;</span>
+<span class="fc" id="L322">        estado = ESTADO_TERMINADO;</span>
+<span class="fc bfc" id="L323" title="All 2 branches covered.">        if (ganador == jugador1) {</span>
+<span class="fc" id="L324">            puntosJugador1 = PUNTOS_GANADOR;</span>
+<span class="fc" id="L325">            puntosJugador2 = PUNTOS_PERDEDOR;</span>
+        } else {
+<span class="fc" id="L327">            puntosJugador1 = PUNTOS_PERDEDOR;</span>
+<span class="fc" id="L328">            puntosJugador2 = PUNTOS_GANADOR;</span>
+        }
+<span class="fc" id="L330">        jugador1.sumarPuntos(puntosJugador1);</span>
+<span class="fc" id="L331">        jugador2.sumarPuntos(puntosJugador2);</span>
+<span class="fc" id="L332">    }</span>
+
+    /**
+     * Los jugadores y el balón vuelven al centro, y el balón cae desde arriba.
+     */
+    private void reubicarTodo() {
+<span class="fc" id="L338">        jugador1.reubicar();</span>
+<span class="fc" id="L339">        jugador2.reubicar();</span>
+<span class="fc" id="L340">        balon.reiniciar();</span>
+<span class="fc" id="L341">        señuelos.clear();</span>
+<span class="fc" id="L342">        ticksAtasco = 0;</span>
+<span class="fc" id="L343">        jugadorCargando = null;</span>
+<span class="fc" id="L344">        ticksCargando = 0;</span>
+<span class="fc" id="L345">    }</span>
+
+    // pausa y salida
+
+    /**
+     * Pone el partido en pausa (solo si está jugando o en la cuenta atrás).
+     */
+    public void pausar() {
+<span class="pc bpc" id="L353" title="1 of 4 branches missed.">        if (ESTADO_EN_CURSO.equals(estado) || ESTADO_CUENTA.equals(estado)) {</span>
+<span class="fc" id="L354">            estadoAntesDePausa = estado;</span>
+<span class="fc" id="L355">            estado = ESTADO_PAUSADO;</span>
+<span class="fc" id="L356">            limpiarPedidos();</span>
+        }
+<span class="fc" id="L358">    }</span>
+
+    /**
+     * Quita la pausa y sigue donde se había quedado.
+     */
+    public void reanudar() {
+<span class="pc bpc" id="L364" title="1 of 2 branches missed.">        if (ESTADO_PAUSADO.equals(estado)) {</span>
+<span class="fc" id="L365">            estado = estadoAntesDePausa;</span>
+        }
+<span class="fc" id="L367">    }</span>
+
+    /**
+     * Termina el partido antes de tiempo: no hay ganador ni puntos.
+     */
+    public void abandonar() {
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">        if (!ESTADO_TERMINADO.equals(estado)) {</span>
+<span class="fc" id="L374">            estado = ESTADO_ABANDONADO;</span>
+        }
+<span class="fc" id="L376">    }</span>
+
+    // consultas
+
+    /**
+     * @return el estado actual (ver las constantes ESTADO_...)
+     */
+    public String getEstado() {
+<span class="fc" id="L384">        return estado;</span>
+    }
+
+    public String getTipo() {
+<span class="nc" id="L388">        return tipo;</span>
+    }
+
+    public int getMinutos() {
+<span class="nc" id="L392">        return minutos;</span>
+    }
+
+    public int getGolesParaGanar() {
+<span class="fc" id="L396">        return golesParaGanar;</span>
+    }
+
+    public boolean isMuerteSubita() {
+<span class="fc" id="L400">        return muerteSubita;</span>
+    }
+
+    /**
+     * @return segundos que faltan (solo tiene sentido en partidos por tiempo)
+     */
+    public int getSegundosRestantes() {
+<span class="fc" id="L407">        return (int) Math.ceil(Math.max(0, ticksRestantes) / (double) TICKS_POR_SEGUNDO);</span>
+    }
+
+    /**
+     * @return segundos que lleva jugándose el partido
+     */
+    public int getSegundosJugados() {
+<span class="nc" id="L414">        return ticksJugados / TICKS_POR_SEGUNDO;</span>
+    }
+
+    /**
+     * @return el número que se muestra en la cuenta atrás (3, 2, 1)
+     */
+    public int getNumeroCuenta() {
+<span class="fc" id="L421">        return (int) Math.ceil(Math.max(0, ticksCuenta) / (double) TICKS_POR_SEGUNDO);</span>
+    }
+
+    public int getTicksCuenta() {
+<span class="nc" id="L425">        return ticksCuenta;</span>
+    }
+
+    public int getTicksCelebracion() {
+<span class="nc" id="L429">        return ticksCelebracion;</span>
+    }
+
+    /**
+     * @return el jugador que está cargando su tiro de poder (null si nadie)
+     */
+    public Jugador getJugadorCargando() {
+<span class="fc" id="L436">        return jugadorCargando;</span>
+    }
+
+    public Jugador getUltimoAnotador() {
+<span class="fc" id="L440">        return ultimoAnotador;</span>
+    }
+
+    /**
+     * @return el ganador, o null si todavía no hay (o si se abandonó)
+     */
+    public Jugador getGanador() {
+<span class="fc" id="L447">        return ganador;</span>
+    }
+
+    /**
+     * @param jugador uno de los dos jugadores
+     * @return los puntos que ganó en este partido
+     */
+    public int getPuntosGanados(Jugador jugador) {
+<span class="fc bfc" id="L455" title="All 2 branches covered.">        return jugador == jugador1 ? puntosJugador1 : puntosJugador2;</span>
+    }
+
+    public Jugador getJugador1() {
+<span class="nc" id="L459">        return jugador1;</span>
+    }
+
+    public Jugador getJugador2() {
+<span class="nc" id="L463">        return jugador2;</span>
+    }
+
+    public Balon getBalon() {
+<span class="fc" id="L467">        return balon;</span>
+    }
+
+    public Cancha getCancha() {
+<span class="fc" id="L471">        return cancha;</span>
+    }
+
+    public Marcador getMarcador() {
+<span class="fc" id="L475">        return marcador;</span>
+    }
+
+    public Porteria getPorteriaIzquierda() {
+<span class="fc" id="L479">        return porteriaIzquierda;</span>
+    }
+
+    public Porteria getPorteriaDerecha() {
+<span class="fc" id="L483">        return porteriaDerecha;</span>
+    }
+
+    /**
+     * @return los balones falsos del poder de Estados Unidos (puede estar vacía)
+     */
+    public List&lt;Balon&gt; getSeñuelos() {
+<span class="fc" id="L490">        return señuelos;</span>
+    }
+
+    /**
+     * Agrega balones falsos (los usa el poder Ilusión).
+     *
+     * @param falsos los balones falsos
+     * @param ticks  cuánto tiempo se quedan
+     */
+    public void agregarSeñuelos(List&lt;Balon&gt; falsos, int ticks) {
+<span class="fc" id="L500">        señuelos.clear();</span>
+<span class="fc" id="L501">        señuelos.addAll(falsos);</span>
+<span class="fc" id="L502">        ticksSeñuelos = ticks;</span>
+<span class="fc" id="L503">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PantallaModalidad.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">PantallaModalidad.java</span></div><h1>PantallaModalidad.java</h1><pre class="source lang-java linenums">package presentation;
+
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.RoundRectangle2D;
+
+/**
+ * Pantalla donde se elige cómo jugar: jugador contra jugador o contra la máquina
+ * (esta última se ve, pero queda bloqueada hasta la versión dos).
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+class PantallaModalidad extends PantallaBase {
+
+    PantallaModalidad(VentanaPrincipal ventana) {
+<span class="nc" id="L17">        super(ventana, false);</span>
+<span class="nc" id="L18">    }</span>
+
+    @Override
+    protected void pintar(Graphics2D g, double t) {
+<span class="nc" id="L22">        velo(g, 120);</span>
+<span class="nc" id="L23">        titulo(g, &quot;ELIGE LA MODALIDAD&quot;, 88);</span>
+
+        // Tarjeta 1: jugador vs jugador
+<span class="nc" id="L26">        double x1 = 90;</span>
+<span class="nc" id="L27">        double x2 = 530;</span>
+<span class="nc" id="L28">        double y = 135;</span>
+<span class="nc" id="L29">        double w = 380;</span>
+<span class="nc" id="L30">        double h = 290;</span>
+<span class="nc" id="L31">        boolean hover = zona(x1, y, w, h, ventana::irAPersonajes);</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        tarjeta(g, x1, y, w, h, hover ? Estilo.AMARILLO : Estilo.AZUL_CLARO, hover);</span>
+<span class="nc" id="L33">        miniatura(g, x1 + w / 2, y + 40, &quot;COREA&quot;, &quot;CAMERUN&quot;, t, hover);</span>
+<span class="nc" id="L34">        Estilo.textoCentrado(g, &quot;JUGADOR vs JUGADOR&quot;, Estilo.fuente(28), x1 + w / 2, y + 228, Color.WHITE);</span>
+<span class="nc" id="L35">        texto(g, &quot;Dos jugadores en el mismo teclado&quot;, 17, x1 + w / 2, y + 258, new Color(0xBF, 0xD6, 0xFF));</span>
+
+        // Tarjeta 2: jugador vs máquina (bloqueada)
+<span class="nc" id="L38">        tarjeta(g, x2, y, w, h, Estilo.GRIS, false);</span>
+<span class="nc" id="L39">        miniatura(g, x2 + w / 2, y + 40, &quot;NIGERIA&quot;, &quot;EEUU&quot;, t, false);</span>
+<span class="nc" id="L40">        g.setColor(new Color(10, 16, 36, 150));</span>
+<span class="nc" id="L41">        g.fill(new RoundRectangle2D.Double(x2 + 3, y + 3, w - 6, h - 6, 30, 30));</span>
+<span class="nc" id="L42">        Estilo.textoCentrado(g, &quot;JUGADOR vs MÁQUINA&quot;, Estilo.fuente(28), x2 + w / 2, y + 228, new Color(0xB5, 0xBC, 0xCC));</span>
+        // candado y cinta
+<span class="nc" id="L44">        double cx = x2 + w / 2;</span>
+<span class="nc" id="L45">        g.setColor(Estilo.AMARILLO);</span>
+<span class="nc" id="L46">        g.fill(new RoundRectangle2D.Double(cx - 24, y + 108, 48, 40, 10, 10));</span>
+<span class="nc" id="L47">        g.setStroke(new java.awt.BasicStroke(8f, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));</span>
+<span class="nc" id="L48">        g.draw(new java.awt.geom.Arc2D.Double(cx - 15, y + 76, 30, 50, 0, 180, java.awt.geom.Arc2D.OPEN));</span>
+<span class="nc" id="L49">        g.setColor(new Color(0x7A, 0x5A, 0x00));</span>
+<span class="nc" id="L50">        g.fill(new java.awt.geom.Ellipse2D.Double(cx - 5, y + 120, 10, 10));</span>
+<span class="nc" id="L51">        texto(g, &quot;Llega en la versión 2&quot;, 17, cx, y + 258, Estilo.AMARILLO);</span>
+
+<span class="nc" id="L53">        boton(g, &quot;VOLVER&quot;, Estilo.ROJO, 40, 468, 200, 56, true, ventana::irAPortada);</span>
+<span class="nc" id="L54">    }</span>
+
+    /**
+     * Dibuja dos personajes pequeños frente a frente dentro de la tarjeta.
+     */
+    private void miniatura(Graphics2D g, double cx, double y, String a, String b, double t, boolean salto) {
+<span class="nc" id="L60">        AffineTransform original = g.getTransform();</span>
+<span class="nc" id="L61">        g.translate(cx, y);</span>
+<span class="nc" id="L62">        g.scale(0.9, 0.9);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        double brinco = salto ? Math.abs(Math.sin(t * 0.12)) * 18 : 0;</span>
+<span class="nc" id="L64">        DibujoPersonaje.dibujarGrande(g, -85, 70 - brinco, 180, a, false, 1, 0, &quot;&quot;, t);</span>
+<span class="nc" id="L65">        DibujoPersonaje.dibujarGrande(g, 85, 70 - brinco, 180, b, false, -1, 0, &quot;&quot;, t);</span>
+<span class="nc" id="L66">        DibujoBalon.dibujar(g, 0, 140 - brinco, 20, t * 0.05, &quot;&quot;, 0, 0, t);</span>
+<span class="nc" id="L67">        g.setTransform(original);</span>
+<span class="nc" id="L68">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

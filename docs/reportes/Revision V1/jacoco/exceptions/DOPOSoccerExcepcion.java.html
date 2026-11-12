@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DOPOSoccerExcepcion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">exceptions</a> &gt; <span class="el_source">DOPOSoccerExcepcion.java</span></div><h1>DOPOSoccerExcepcion.java</h1><pre class="source lang-java linenums">package exceptions;
+
+/**
+ * Excepción propia de DOPOSoccer. La usamos cuando alguien le pide al juego algo
+ * que no puede cumplir (una resolución que no existe, un partido de 0 goles,
+ * un personaje vacío...). Así los mensajes que ve el jugador son claros y no un
+ * simple &quot;NullPointerException&quot;.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class DOPOSoccerExcepcion extends Exception {
+
+    // Mensajes que se repiten en varias clases. Los dejo como constantes
+    // para no escribirlos distinto en cada lado.
+    public static final String RESOLUCION_INVALIDA =
+            &quot;La resolución elegida no existe. Escoge Pequeña, Mediana o Grande.&quot;;
+    public static final String PERSONAJE_VACIO =
+            &quot;Cada jugador debe elegir un personaje antes de empezar el partido.&quot;;
+    public static final String TIPO_PARTIDO_INVALIDO =
+            &quot;El tipo de partido debe ser por tiempo o por goles.&quot;;
+    public static final String MINUTOS_INVALIDOS =
+            &quot;Un partido por tiempo debe durar entre 1 y 10 minutos.&quot;;
+    public static final String GOLES_INVALIDOS =
+            &quot;Un partido por goles debe ganarse entre 1 y 20 goles.&quot;;
+    public static final String IDIOMA_INVALIDO =
+            &quot;Ese idioma todavía no está disponible. Por ahora puedes usar Español o Inglés.&quot;;
+    public static final String MODALIDAD_NO_DISPONIBLE =
+            &quot;Jugador vs máquina todavía no está disponible. Llegará en la versión dos.&quot;;
+    public static final String ESTADISTICA_INVALIDA =
+            &quot;Las estadísticas de un jugador deben estar entre 1 y 10.&quot;;
+    public static final String JUGADORES_VACIOS =
+            &quot;El partido necesita dos jugadores y una cancha.&quot;;
+
+    /**
+     * Crea la excepción con el mensaje que se le mostrará al usuario.
+     *
+     * @param mensaje explicación del problema
+     */
+    public DOPOSoccerExcepcion(String mensaje) {
+<span class="fc" id="L41">        super(mensaje);</span>
+<span class="fc" id="L42">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

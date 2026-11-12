@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DibujoBandera.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">DibujoBandera.java</span></div><h1>DibujoBandera.java</h1><pre class="source lang-java linenums">package presentation;
+
+import java.awt.*;
+import java.awt.geom.*;
+
+/**
+ * Dibuja las banderas de los cuatro países con formas (sin imágenes), para que se
+ * vean nítidas en cualquier tamaño.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+final class DibujoBandera {
+
+    private DibujoBandera() {
+        // Clase de utilidad.
+    }
+
+    /**
+     * Dibuja la bandera del país dentro de un rectángulo con las esquinas redondeadas.
+     *
+     * @param g      el pincel
+     * @param codigo COREA, CAMERUN, NIGERIA o EEUU
+     * @param x      esquina izquierda
+     * @param y      esquina de arriba
+     * @param w      ancho
+     * @param h      alto
+     */
+    static void dibujar(Graphics2D g, String codigo, double x, double y, double w, double h) {
+<span class="nc" id="L30">        Shape clipAnterior = g.getClip();</span>
+<span class="nc" id="L31">        RoundRectangle2D marco = new RoundRectangle2D.Double(x, y, w, h, h * 0.22, h * 0.22);</span>
+<span class="nc" id="L32">        g.clip(marco);</span>
+
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (&quot;COREA&quot;.equals(codigo)) {</span>
+<span class="nc" id="L35">            corea(g, x, y, w, h);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        } else if (&quot;CAMERUN&quot;.equals(codigo)) {</span>
+<span class="nc" id="L37">            camerun(g, x, y, w, h);</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        } else if (&quot;NIGERIA&quot;.equals(codigo)) {</span>
+<span class="nc" id="L39">            nigeria(g, x, y, w, h);</span>
+        } else {
+<span class="nc" id="L41">            estadosUnidos(g, x, y, w, h);</span>
+        }
+
+        // Brillo suave encima
+<span class="nc" id="L45">        g.setColor(new Color(255, 255, 255, 40));</span>
+<span class="nc" id="L46">        g.fill(new Rectangle2D.Double(x, y, w, h * 0.45));</span>
+<span class="nc" id="L47">        g.setClip(clipAnterior);</span>
+<span class="nc" id="L48">        g.setColor(new Color(0, 0, 0, 120));</span>
+<span class="nc" id="L49">        g.setStroke(new BasicStroke((float) Math.max(1.2, h * 0.04)));</span>
+<span class="nc" id="L50">        g.draw(marco);</span>
+<span class="nc" id="L51">    }</span>
+
+    private static void corea(Graphics2D g, double x, double y, double w, double h) {
+<span class="nc" id="L54">        g.setColor(new Color(0xF8, 0xF8, 0xF8));</span>
+<span class="nc" id="L55">        g.fill(new Rectangle2D.Double(x, y, w, h));</span>
+<span class="nc" id="L56">        double cx = x + w / 2;</span>
+<span class="nc" id="L57">        double cy = y + h / 2;</span>
+<span class="nc" id="L58">        double r = h * 0.24;</span>
+<span class="nc" id="L59">        Color rojo = new Color(0xCD, 0x2E, 0x3A);</span>
+<span class="nc" id="L60">        Color azul = new Color(0x00, 0x47, 0xA0);</span>
+<span class="nc" id="L61">        g.setColor(azul);</span>
+<span class="nc" id="L62">        g.fill(new Ellipse2D.Double(cx - r, cy - r, 2 * r, 2 * r));</span>
+<span class="nc" id="L63">        g.setColor(rojo);</span>
+<span class="nc" id="L64">        g.fill(new Arc2D.Double(cx - r, cy - r, 2 * r, 2 * r, 0, 180, Arc2D.PIE));</span>
+<span class="nc" id="L65">        g.fill(new Ellipse2D.Double(cx - r, cy - r / 2, r, r));</span>
+<span class="nc" id="L66">        g.setColor(azul);</span>
+<span class="nc" id="L67">        g.fill(new Ellipse2D.Double(cx, cy - r / 2, r, r));</span>
+        // Trigramas en las esquinas
+<span class="nc" id="L69">        g.setColor(Color.BLACK);</span>
+<span class="nc" id="L70">        double[][] pos = {{-1, -1, 1}, {1, -1, -1}, {-1, 1, -1}, {1, 1, 1}};</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        for (double[] p : pos) {</span>
+<span class="nc" id="L72">            AffineTransform antes = g.getTransform();</span>
+<span class="nc" id="L73">            g.translate(cx + p[0] * w * 0.30, cy + p[1] * h * 0.30);</span>
+<span class="nc" id="L74">            g.rotate(p[2] * Math.toRadians(33));</span>
+<span class="nc" id="L75">            double bw = w * 0.15;</span>
+<span class="nc" id="L76">            double bh = h * 0.045;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            for (int i = -1; i &lt;= 1; i++) {</span>
+<span class="nc" id="L78">                g.fill(new Rectangle2D.Double(-bw / 2, i * bh * 1.9 - bh / 2, bw, bh));</span>
+            }
+<span class="nc" id="L80">            g.setTransform(antes);</span>
+        }
+<span class="nc" id="L82">    }</span>
+
+    private static void camerun(Graphics2D g, double x, double y, double w, double h) {
+<span class="nc" id="L85">        double t = w / 3;</span>
+<span class="nc" id="L86">        g.setColor(new Color(0x00, 0x7A, 0x5E));</span>
+<span class="nc" id="L87">        g.fill(new Rectangle2D.Double(x, y, t + 1, h));</span>
+<span class="nc" id="L88">        g.setColor(new Color(0xCE, 0x11, 0x26));</span>
+<span class="nc" id="L89">        g.fill(new Rectangle2D.Double(x + t, y, t + 1, h));</span>
+<span class="nc" id="L90">        g.setColor(new Color(0xFC, 0xD1, 0x16));</span>
+<span class="nc" id="L91">        g.fill(new Rectangle2D.Double(x + 2 * t, y, t, h));</span>
+<span class="nc" id="L92">        g.setColor(new Color(0xFC, 0xD1, 0x16));</span>
+<span class="nc" id="L93">        g.fill(estrella(x + w / 2, y + h / 2, h * 0.27));</span>
+<span class="nc" id="L94">    }</span>
+
+    private static void nigeria(Graphics2D g, double x, double y, double w, double h) {
+<span class="nc" id="L97">        double t = w / 3;</span>
+<span class="nc" id="L98">        g.setColor(new Color(0x00, 0x87, 0x51));</span>
+<span class="nc" id="L99">        g.fill(new Rectangle2D.Double(x, y, t + 1, h));</span>
+<span class="nc" id="L100">        g.fill(new Rectangle2D.Double(x + 2 * t, y, t, h));</span>
+<span class="nc" id="L101">        g.setColor(Color.WHITE);</span>
+<span class="nc" id="L102">        g.fill(new Rectangle2D.Double(x + t, y, t + 1, h));</span>
+<span class="nc" id="L103">    }</span>
+
+    private static void estadosUnidos(Graphics2D g, double x, double y, double w, double h) {
+<span class="nc" id="L106">        double franja = h / 13;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        for (int i = 0; i &lt; 13; i++) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            g.setColor(i % 2 == 0 ? new Color(0xB2, 0x22, 0x34) : Color.WHITE);</span>
+<span class="nc" id="L109">            g.fill(new Rectangle2D.Double(x, y + i * franja, w, franja + 0.6));</span>
+        }
+<span class="nc" id="L111">        g.setColor(new Color(0x3C, 0x3B, 0x6E));</span>
+<span class="nc" id="L112">        double cw = w * 0.42;</span>
+<span class="nc" id="L113">        double ch = franja * 7;</span>
+<span class="nc" id="L114">        g.fill(new Rectangle2D.Double(x, y, cw, ch));</span>
+<span class="nc" id="L115">        g.setColor(Color.WHITE);</span>
+<span class="nc" id="L116">        double d = Math.max(1.2, h * 0.045);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        for (int fila = 0; fila &lt; 4; fila++) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            for (int col = 0; col &lt; 5; col++) {</span>
+<span class="nc" id="L119">                g.fill(new Ellipse2D.Double(x + cw * (0.12 + col * 0.19), y + ch * (0.14 + fila * 0.23), d, d));</span>
+            }
+        }
+<span class="nc" id="L122">    }</span>
+
+    private static Shape estrella(double cx, double cy, double r) {
+<span class="nc" id="L125">        Path2D.Double p = new Path2D.Double();</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (int i = 0; i &lt; 10; i++) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            double radio = i % 2 == 0 ? r : r * 0.4;</span>
+<span class="nc" id="L128">            double ang = -Math.PI / 2 + i * Math.PI / 5;</span>
+<span class="nc" id="L129">            double px = cx + Math.cos(ang) * radio;</span>
+<span class="nc" id="L130">            double py = cy + Math.sin(ang) * radio;</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (i == 0) {</span>
+<span class="nc" id="L132">                p.moveTo(px, py);</span>
+            } else {
+<span class="nc" id="L134">                p.lineTo(px, py);</span>
+            }
+        }
+<span class="nc" id="L137">        p.closePath();</span>
+<span class="nc" id="L138">        return p;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

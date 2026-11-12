@@ -1,15 +1,11 @@
 package domain;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import exceptions.DOPOSoccerExcepcion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import util.RegistroErrores;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pruebas del partido: validaciones, cuenta atrás, goles, tipos de partido,
@@ -36,7 +32,9 @@ class PartidoTest {
         return new Partido(j1, j2, tipo, valor, cancha);
     }
 
-    /** Avanza la cuenta atrás hasta que el partido arranca. */
+    /**
+     * Avanza la cuenta atrás hasta que el partido arranca.
+     */
     private void pasarLaCuenta(Partido p) {
         for (int i = 0; i < Partido.TICKS_CUENTA + 2; i++) {
             p.actualizar();

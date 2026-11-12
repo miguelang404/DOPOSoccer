@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Balon.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Balon.java</span></div><h1>Balon.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * El balón. Se mueve con gravedad, rebota en el piso, en el techo y en las
+ * paredes, y va perdiendo fuerza poco a poco. No sabe nada de jugadores ni de
+ * goles: de eso se encargan Partido y Porteria.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class Balon {
+
+    /** Radio del balón (es un círculo). */
+    public static final int RADIO = 16;
+
+    private static final double REBOTE_SUELO = 0.74;
+    private static final double REBOTE_PARED = 0.80;
+    private static final double ROZAMIENTO_AIRE = 0.9985;
+    private static final double ROZAMIENTO_SUELO = 0.985;
+    private static final double VELOCIDAD_MAXIMA = 24;
+
+    private double x;
+    private double y;
+    private double vx;
+    private double vy;
+    private double giro;
+    private String efecto;
+    private int ticksEfecto;
+
+    /** Crea el balón en el centro de la cancha, listo para caer. */
+<span class="fc" id="L31">    public Balon() {</span>
+<span class="fc" id="L32">        reiniciar();</span>
+<span class="fc" id="L33">    }</span>
+
+    /** Lo deja otra vez en el centro, quieto y sin ningún efecto. */
+    public void reiniciar() {
+<span class="fc" id="L37">        x = Cancha.ANCHO / 2.0;</span>
+<span class="fc" id="L38">        y = 110;</span>
+<span class="fc" id="L39">        vx = 0;</span>
+<span class="fc" id="L40">        vy = 0;</span>
+<span class="fc" id="L41">        giro = 0;</span>
+<span class="fc" id="L42">        efecto = &quot;&quot;;</span>
+<span class="fc" id="L43">        ticksEfecto = 0;</span>
+<span class="fc" id="L44">    }</span>
+
+    /** Avanza el balón un instante (un tick). */
+    public void mover() {
+        // Recomendación de la IA generativa para la física del balón: gravedad, rozamiento y rebotes
+        // con piso, techo y paredes. Cuando hay un poder activo se apaga la gravedad y el rozamiento
+        // para que el tiro vaya recto.
+        // Mientras dura un tiro de poder el balón vuela recto: sin gravedad y sin perder fuerza.
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (efecto.isEmpty()) {</span>
+<span class="fc" id="L53">            vy += Cancha.GRAVEDAD;</span>
+<span class="fc" id="L54">            vx *= ROZAMIENTO_AIRE;</span>
+        }
+<span class="fc" id="L56">        limitarVelocidad();</span>
+<span class="fc" id="L57">        x += vx;</span>
+<span class="fc" id="L58">        y += vy;</span>
+
+        // Piso: rebota, y si ya casi no sube se queda rodando.
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (y + RADIO &gt;= Cancha.SUELO) {</span>
+<span class="fc" id="L62">            y = Cancha.SUELO - RADIO;</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (&quot;TORNADO&quot;.equals(efecto)) {</span>
+<span class="fc" id="L64">                vy = 0;           // el tornado corre pegado al suelo</span>
+<span class="pc bpc" id="L65" title="1 of 4 branches missed.">            } else if (vy &gt; 1.5 || !efecto.isEmpty()) {</span>
+<span class="fc" id="L66">                terminarEfecto();  // chocar con el piso acaba el poder</span>
+<span class="fc" id="L67">                vy = -vy * REBOTE_SUELO;</span>
+            } else {
+<span class="fc" id="L69">                vy = 0;</span>
+<span class="fc" id="L70">                vx *= ROZAMIENTO_SUELO;</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                if (Math.abs(vx) &lt; 0.02) {</span>
+<span class="fc" id="L72">                    vx = 0;</span>
+                }
+            }
+        }
+        // Techo
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (y - RADIO &lt; 0) {</span>
+<span class="fc" id="L78">            y = RADIO;</span>
+<span class="fc" id="L79">            vy = Math.abs(vy) * 0.6;</span>
+<span class="fc" id="L80">            terminarEfecto();</span>
+        }
+        // Paredes
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (x - RADIO &lt; 0) {</span>
+<span class="fc" id="L84">            x = RADIO;</span>
+<span class="fc" id="L85">            vx = Math.abs(vx) * REBOTE_PARED;</span>
+<span class="fc" id="L86">            terminarEfecto();</span>
+        }
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (x + RADIO &gt; Cancha.ANCHO) {</span>
+<span class="fc" id="L89">            x = Cancha.ANCHO - RADIO;</span>
+<span class="fc" id="L90">            vx = -Math.abs(vx) * REBOTE_PARED;</span>
+<span class="fc" id="L91">            terminarEfecto();</span>
+        }
+
+<span class="fc" id="L94">        giro += vx / RADIO;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (ticksEfecto &gt; 0) {</span>
+<span class="fc" id="L96">            ticksEfecto--;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            if (ticksEfecto == 0) {</span>
+<span class="fc" id="L98">                efecto = &quot;&quot;;</span>
+            }
+        }
+<span class="fc" id="L101">    }</span>
+
+    private void limitarVelocidad() {
+<span class="fc" id="L104">        double rapidez = Math.hypot(vx, vy);</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (rapidez &gt; VELOCIDAD_MAXIMA) {</span>
+<span class="fc" id="L106">            vx = vx / rapidez * VELOCIDAD_MAXIMA;</span>
+<span class="fc" id="L107">            vy = vy / rapidez * VELOCIDAD_MAXIMA;</span>
+        }
+<span class="fc" id="L109">    }</span>
+
+    /** Apaga el efecto de poder: desde ese momento el balón vuelve a ser uno normal. */
+    public void terminarEfecto() {
+<span class="fc" id="L113">        efecto = &quot;&quot;;</span>
+<span class="fc" id="L114">        ticksEfecto = 0;</span>
+<span class="fc" id="L115">    }</span>
+
+    /**
+     * Le da velocidad al balón de golpe (una patada, un tiro de poder...).
+     *
+     * @param nuevaVx velocidad horizontal
+     * @param nuevaVy velocidad vertical (negativa es hacia arriba)
+     */
+    public void impulsar(double nuevaVx, double nuevaVy) {
+<span class="fc" id="L124">        vx = nuevaVx;</span>
+<span class="fc" id="L125">        vy = nuevaVy;</span>
+<span class="fc" id="L126">        limitarVelocidad();</span>
+<span class="fc" id="L127">    }</span>
+
+    /**
+     * Pone el balón en un punto exacto.
+     *
+     * @param nuevaX posición horizontal
+     * @param nuevaY posición vertical
+     */
+    public void setPosicion(double nuevaX, double nuevaY) {
+<span class="fc" id="L136">        x = nuevaX;</span>
+<span class="fc" id="L137">        y = nuevaY;</span>
+<span class="fc" id="L138">    }</span>
+
+    /**
+     * Cambia la velocidad (la usan las colisiones); nunca pasa de la velocidad máxima.
+     *
+     * @param nuevaVx velocidad horizontal
+     * @param nuevaVy velocidad vertical
+     */
+    public void setVelocidad(double nuevaVx, double nuevaVy) {
+<span class="fc" id="L147">        vx = nuevaVx;</span>
+<span class="fc" id="L148">        vy = nuevaVy;</span>
+<span class="fc" id="L149">        limitarVelocidad();</span>
+<span class="fc" id="L150">    }</span>
+
+    /**
+     * Marca el balón con el efecto visual de un tiro de poder.
+     *
+     * @param codigo nombre del efecto (por ejemplo &quot;RAYO&quot;)
+     * @param ticks  cuánto dura
+     */
+    public void setEfecto(String codigo, int ticks) {
+<span class="fc" id="L159">        efecto = codigo;</span>
+<span class="fc" id="L160">        ticksEfecto = ticks;</span>
+<span class="fc" id="L161">    }</span>
+
+    public double getX() {
+<span class="fc" id="L164">        return x;</span>
+    }
+
+    public double getY() {
+<span class="fc" id="L168">        return y;</span>
+    }
+
+    public double getVx() {
+<span class="fc" id="L172">        return vx;</span>
+    }
+
+    public double getVy() {
+<span class="fc" id="L176">        return vy;</span>
+    }
+
+    /** @return cuánto ha girado el balón, en radianes (para dibujarlo rodando) */
+    public double getGiro() {
+<span class="nc" id="L181">        return giro;</span>
+    }
+
+    /** @return el efecto activo (&quot;&quot; si no tiene ninguno) */
+    public String getEfecto() {
+<span class="fc" id="L186">        return efecto;</span>
+    }
+
+    public int getTicksEfecto() {
+<span class="nc" id="L190">        return ticksEfecto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Sonidos.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">Sonidos.java</span></div><h1>Sonidos.java</h1><pre class="source lang-java linenums">package presentation;
+
+import util.RegistroErrores;
+
+import javax.sound.sampled.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
+/**
+ * Efectos de sonido del juego. No usamos archivos de audio: los sonidos se
+ * fabrican con matemáticas (ondas y ruido) la primera vez que se necesitan.
+ * Si el computador no tiene audio, el juego sigue funcionando en silencio.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+final class Sonidos {
+
+    private static final float FRECUENCIA = 22050f;
+<span class="nc" id="L21">    private static final AudioFormat FORMATO = new AudioFormat(FRECUENCIA, 16, 1, true, false);</span>
+<span class="nc" id="L22">    private static final Map&lt;String, byte[]&gt; CACHE = new HashMap&lt;String, byte[]&gt;();</span>
+
+<span class="nc" id="L24">    private static boolean activo = true;</span>
+<span class="nc" id="L25">    private static boolean disponible = true;</span>
+    private static int abiertos;
+
+    private Sonidos() {
+        // Clase de utilidad.
+    }
+
+    /**
+     * Enciende o apaga los efectos (viene de la pantalla de configuración).
+     *
+     * @param valor true para que suenen
+     */
+    static void setActivo(boolean valor) {
+<span class="nc" id="L38">        activo = valor;</span>
+<span class="nc" id="L39">    }</span>
+
+    /**
+     * Reproduce un efecto.
+     *
+     * @param nombre patada, rebote, gol, silbato, poder, cuenta o ya
+     */
+    static void reproducir(String nombre) {
+<span class="nc bnc" id="L47" title="All 6 branches missed.">        if (!activo || !disponible || abiertos &gt; 8) {</span>
+<span class="nc" id="L48">            return;</span>
+        }
+        try {
+<span class="nc" id="L51">            byte[] datos = obtener(nombre);</span>
+<span class="nc" id="L52">            final Clip clip = AudioSystem.getClip();</span>
+<span class="nc" id="L53">            clip.open(FORMATO, datos, 0, datos.length);</span>
+<span class="nc" id="L54">            clip.addLineListener(new LineListener() {</span>
+                @Override
+                public void update(LineEvent evento) {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                    if (evento.getType() == LineEvent.Type.STOP) {</span>
+<span class="nc" id="L58">                        clip.close();</span>
+<span class="nc" id="L59">                        abiertos--;</span>
+                    }
+<span class="nc" id="L61">                }</span>
+            });
+<span class="nc" id="L63">            abiertos++;</span>
+<span class="nc" id="L64">            clip.start();</span>
+<span class="nc" id="L65">        } catch (Exception | Error e) {</span>
+            // Sin tarjeta de sonido o sin permisos: seguimos jugando en silencio.
+<span class="nc" id="L67">            disponible = false;</span>
+<span class="nc" id="L68">            RegistroErrores.registrar(&quot;Sonido&quot;, e);</span>
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">    }</span>
+
+    private static byte[] obtener(String nombre) {
+<span class="nc" id="L73">        byte[] datos = CACHE.get(nombre);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (datos == null) {</span>
+<span class="nc" id="L75">            datos = fabricar(nombre);</span>
+<span class="nc" id="L76">            CACHE.put(nombre, datos);</span>
+        }
+<span class="nc" id="L78">        return datos;</span>
+    }
+
+    private static byte[] fabricar(String nombre) {
+        // Recomendación de la IA generativa para generar los sonidos sin archivos: cada efecto se
+        // construye con ondas seno y ruido, con una caída suave del volumen, y se guarda en bytes de 16
+        // bits.
+<span class="nc" id="L85">        Random azar = new Random(5);</span>
+        double duracion;
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (&quot;gol&quot;.equals(nombre)) {</span>
+<span class="nc" id="L88">            duracion = 0.9;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        } else if (&quot;silbato&quot;.equals(nombre)) {</span>
+<span class="nc" id="L90">            duracion = 0.55;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        } else if (&quot;poder&quot;.equals(nombre)) {</span>
+<span class="nc" id="L92">            duracion = 0.4;</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        } else if (&quot;patada&quot;.equals(nombre)) {</span>
+<span class="nc" id="L94">            duracion = 0.12;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        } else if (&quot;rebote&quot;.equals(nombre)) {</span>
+<span class="nc" id="L96">            duracion = 0.09;</span>
+        } else {
+<span class="nc" id="L98">            duracion = 0.16;</span>
+        }
+<span class="nc" id="L100">        int n = (int) (duracion * FRECUENCIA);</span>
+<span class="nc" id="L101">        byte[] bytes = new byte[n * 2];</span>
+<span class="nc" id="L102">        double fase = 0;</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (int i = 0; i &lt; n; i++) {</span>
+<span class="nc" id="L104">            double t = i / FRECUENCIA;</span>
+<span class="nc" id="L105">            double progreso = i / (double) n;</span>
+            double valor;
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (&quot;patada&quot;.equals(nombre)) {</span>
+<span class="nc" id="L108">                double frec = 170 - 110 * progreso;</span>
+<span class="nc" id="L109">                fase += 2 * Math.PI * frec / FRECUENCIA;</span>
+<span class="nc" id="L110">                valor = (Math.sin(fase) * 0.8 + (azar.nextDouble() - 0.5) * 0.5) * Math.exp(-progreso * 5);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            } else if (&quot;rebote&quot;.equals(nombre)) {</span>
+<span class="nc" id="L112">                fase += 2 * Math.PI * (260 - 120 * progreso) / FRECUENCIA;</span>
+<span class="nc" id="L113">                valor = Math.sin(fase) * Math.exp(-progreso * 6) * 0.7;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            } else if (&quot;gol&quot;.equals(nombre)) {</span>
+<span class="nc" id="L115">                double[] notas = {523, 659, 784, 1047};</span>
+<span class="nc" id="L116">                int k = Math.min(3, (int) (progreso * 4));</span>
+<span class="nc" id="L117">                fase += 2 * Math.PI * notas[k] / FRECUENCIA;</span>
+<span class="nc" id="L118">                double ruido = (azar.nextDouble() - 0.5) * 0.25 * Math.min(1, progreso * 3);</span>
+<span class="nc" id="L119">                valor = Math.sin(fase) * 0.45 * (1 - progreso * 0.5) + ruido;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            } else if (&quot;silbato&quot;.equals(nombre)) {</span>
+<span class="nc" id="L121">                double frec = 2600 + 120 * Math.sin(2 * Math.PI * 28 * t);</span>
+<span class="nc" id="L122">                fase += 2 * Math.PI * frec / FRECUENCIA;</span>
+<span class="nc" id="L123">                valor = Math.sin(fase) * 0.4 * Math.min(1, progreso * 20) * (1 - progreso);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            } else if (&quot;poder&quot;.equals(nombre)) {</span>
+<span class="nc" id="L125">                double frec = 220 + 1400 * progreso * progreso;</span>
+<span class="nc" id="L126">                fase += 2 * Math.PI * frec / FRECUENCIA;</span>
+<span class="nc" id="L127">                valor = (Math.sin(fase) * 0.5 + (azar.nextDouble() - 0.5) * 0.3) * (1 - progreso);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            } else if (&quot;ya&quot;.equals(nombre)) {</span>
+<span class="nc" id="L129">                fase += 2 * Math.PI * 880 / FRECUENCIA;</span>
+<span class="nc" id="L130">                valor = Math.sin(fase) * 0.45 * (1 - progreso);</span>
+            } else {
+<span class="nc" id="L132">                fase += 2 * Math.PI * 520 / FRECUENCIA;</span>
+<span class="nc" id="L133">                valor = Math.sin(fase) * 0.4 * (1 - progreso);</span>
+            }
+<span class="nc" id="L135">            short muestra = (short) Math.max(-32767, Math.min(32767, valor * 22000));</span>
+<span class="nc" id="L136">            bytes[2 * i] = (byte) (muestra &amp; 0xFF);</span>
+<span class="nc" id="L137">            bytes[2 * i + 1] = (byte) ((muestra &gt;&gt; 8) &amp; 0xFF);</span>
+        }
+<span class="nc" id="L139">        return bytes;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

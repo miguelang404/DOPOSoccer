@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Marcador.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Marcador.java</span></div><h1>Marcador.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * El marcador del partido: lleva la cuenta de los goles de cada jugador y sabe
+ * quién va ganando.
+ *
+ * @author César Daniel Morales Sandoval y Miguel de la Peña
+ * @version Versión 1
+ */
+public class Marcador {
+
+    private final Jugador jugador1;
+    private final Jugador jugador2;
+    private int golesJugador1;
+    private int golesJugador2;
+
+    /**
+     * Crea un marcador 0 - 0 para dos jugadores.
+     *
+     * @param jugador1 el que defiende el arco izquierdo
+     * @param jugador2 el que defiende el arco derecho
+     */
+<span class="fc" id="L23">    public Marcador(Jugador jugador1, Jugador jugador2) {</span>
+<span class="fc" id="L24">        this.jugador1 = jugador1;</span>
+<span class="fc" id="L25">        this.jugador2 = jugador2;</span>
+<span class="fc" id="L26">    }</span>
+
+    /**
+     * Suma un gol a quien lo anotó.
+     *
+     * @param jugador el goleador (tiene que ser uno de los dos del partido)
+     */
+    public void sumarGol(Jugador jugador) {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (jugador == jugador1) {</span>
+<span class="fc" id="L35">            golesJugador1++;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        } else if (jugador == jugador2) {</span>
+<span class="fc" id="L37">            golesJugador2++;</span>
+        } else {
+<span class="fc" id="L39">            throw new IllegalArgumentException(&quot;Ese jugador no pertenece a este marcador&quot;);</span>
+        }
+<span class="fc" id="L41">    }</span>
+
+    /**
+     * @param jugador uno de los dos jugadores
+     * @return sus goles
+     */
+    public int getGoles(Jugador jugador) {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        return jugador == jugador1 ? golesJugador1 : golesJugador2;</span>
+    }
+
+    public int getGolesJugador1() {
+<span class="fc" id="L52">        return golesJugador1;</span>
+    }
+
+    public int getGolesJugador2() {
+<span class="nc" id="L56">        return golesJugador2;</span>
+    }
+
+    /** @return true si van empatados */
+    public boolean hayEmpate() {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        return golesJugador1 == golesJugador2;</span>
+    }
+
+    /** @return el que va ganando, o null si hay empate */
+    public Jugador getGanador() {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (golesJugador1 &gt; golesJugador2) {</span>
+<span class="fc" id="L67">            return jugador1;</span>
+        }
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (golesJugador2 &gt; golesJugador1) {</span>
+<span class="fc" id="L70">            return jugador2;</span>
+        }
+<span class="fc" id="L72">        return null;</span>
+    }
+
+    /** Vuelve a 0 - 0. */
+    public void reiniciar() {
+<span class="fc" id="L77">        golesJugador1 = 0;</span>
+<span class="fc" id="L78">        golesJugador2 = 0;</span>
+<span class="fc" id="L79">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
