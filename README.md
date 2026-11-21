@@ -12,7 +12,7 @@ Escuela Colombiana de Ingeniería Julio Garavito, 2026-2
 ## ¿Qué se puede hacer en esta versión?
 
 Se puede jugar un partido de **jugador contra jugador** en un mismo teclado, con el estilo del juego original: estadio
-con público, arcos con red, cabezones con cara que cambia (se enojan, celebran o se ponen tristes) y el balón girando.
+con público, arcos con red, cabezones sencillos y planos, sin expresiones, y el balón girando.
 
 - **Menús:** portada, elección de modalidad, elección de personaje para cada jugador, configuración del partido y
   configuración general (sonido, música e idioma).
@@ -74,7 +74,7 @@ jugador solo ve un mensaje amable.
 
 ## Pruebas
 
-Tenemos 75 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
+Tenemos 84 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
 el partido, los poderes y la clase `Juego`, incluyendo los casos en los que algo debe fallar (minutos fuera de rango, un
 idioma que no existe, jugar contra la máquina antes de tiempo, etc.).
 
