@@ -20,26 +20,28 @@ class PantallaModalidad extends PantallaBase {
     @Override
     protected void pintar(Graphics2D g, double t) {
         velo(g, 120);
+        botonVolver(g, ventana::irAPortada);
         titulo(g, "ELIGE LA MODALIDAD", 88);
 
         // Tarjeta 1: jugador vs jugador
         double x1 = 90;
         double x2 = 530;
-        double y = 135;
+        double y = 150;
         double w = 380;
-        double h = 290;
+        double h = 280;
         boolean hover = zona(x1, y, w, h, ventana::irAPersonajes);
         tarjeta(g, x1, y, w, h, hover ? Estilo.AMARILLO : Estilo.AZUL_CLARO, hover);
         miniatura(g, x1 + w / 2, y + 40, "COREA", "CAMERUN", t, hover);
-        Estilo.textoCentrado(g, "JUGADOR vs JUGADOR", Estilo.fuente(28), x1 + w / 2, y + 228, Color.WHITE);
-        texto(g, "Dos jugadores en el mismo teclado", 17, x1 + w / 2, y + 258, new Color(0xBF, 0xD6, 0xFF));
+        Estilo.textoCentrado(g, "JUGADOR vs JUGADOR", Estilo.ajustar(g, Estilo.fuente(22), "JUGADOR vs MÁQUINA", w - 50),
+                x1 + w / 2, y + 240, Color.WHITE);
 
         // Tarjeta 2: jugador vs máquina (bloqueada)
         tarjeta(g, x2, y, w, h, Estilo.GRIS, false);
         miniatura(g, x2 + w / 2, y + 40, "NIGERIA", "EEUU", t, false);
         g.setColor(new Color(10, 16, 36, 150));
         g.fill(new RoundRectangle2D.Double(x2 + 3, y + 3, w - 6, h - 6, 30, 30));
-        Estilo.textoCentrado(g, "JUGADOR vs MÁQUINA", Estilo.fuente(28), x2 + w / 2, y + 228, new Color(0xB5, 0xBC, 0xCC));
+        Estilo.textoCentrado(g, "JUGADOR vs MÁQUINA", Estilo.ajustar(g, Estilo.fuente(22), "JUGADOR vs MÁQUINA", w - 50),
+                x2 + w / 2, y + 240, new Color(0xB5, 0xBC, 0xCC));
         // candado y cinta
         double cx = x2 + w / 2;
         g.setColor(Estilo.AMARILLO);
@@ -48,9 +50,7 @@ class PantallaModalidad extends PantallaBase {
         g.draw(new java.awt.geom.Arc2D.Double(cx - 15, y + 76, 30, 50, 0, 180, java.awt.geom.Arc2D.OPEN));
         g.setColor(new Color(0x7A, 0x5A, 0x00));
         g.fill(new java.awt.geom.Ellipse2D.Double(cx - 5, y + 120, 10, 10));
-        texto(g, "Llega en la versión 2", 17, cx, y + 258, Estilo.AMARILLO);
-
-        boton(g, "VOLVER", Estilo.ROJO, 40, 468, 200, 56, true, ventana::irAPortada);
+        texto(g, "Llega en la versión 2", 16, cx, y + 266, Estilo.AMARILLO);
     }
 
     /**

@@ -31,6 +31,12 @@ public class DOPOSoccerExcepcion extends Exception {
             "Las estadísticas de un jugador deben estar entre 1 y 10.";
     public static final String JUGADORES_VACIOS =
             "El partido necesita dos jugadores y una cancha.";
+    public static final String PUNTOS_INSUFICIENTES =
+            "No tienes puntos suficientes para esta mejora.";
+    public static final String ESTADISTICA_AL_MAXIMO =
+            "Esa estadística ya está en su máximo (10).";
+    public static final String ESTADISTICA_DESCONOCIDA =
+            "Esa estadística no existe. Usa velocidad, salto, patada o vida.";
 
     /**
      * Crea la excepción con el mensaje que se le mostrará al usuario.

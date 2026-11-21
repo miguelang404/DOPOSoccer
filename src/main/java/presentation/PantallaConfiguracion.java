@@ -9,7 +9,7 @@ import java.awt.*;
  * los controles de cada jugador.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 class PantallaConfiguracion extends PantallaBase {
 
@@ -20,49 +20,49 @@ class PantallaConfiguracion extends PantallaBase {
     @Override
     protected void pintar(Graphics2D g, double t) {
         velo(g, 135);
+        botonVolver(g, ventana::irAPortada);
         titulo(g, "CONFIGURACIÓN", 78);
         Configuracion c = ventana.getJuego().getConfiguracion();
 
-        tarjeta(g, 60, 100, 440, 366, Estilo.AZUL_CLARO, false);
+        tarjeta(g, 60, 100, 440, 400, Estilo.AZUL_CLARO, false);
         fila(g, "EFECTOS DE SONIDO", 150, c.isSonidoActivo(), ventana::alternarSonido);
-        fila(g, "MÚSICA", 232, c.isMusicaActiva(), ventana::alternarMusica);
+        fila(g, "MÚSICA", 240, c.isMusicaActiva(), ventana::alternarMusica);
 
-        Estilo.textoCentrado(g, "IDIOMA", Estilo.fuente(22), 280, 330, Color.WHITE);
+        Estilo.textoCentrado(g, "IDIOMA", Estilo.fuente(21), 280, 362, Estilo.AZUL_CLARO);
         boolean es = Configuracion.ESPAÑOL.equals(c.getIdioma());
-        boton(g, "ESPAÑOL", es ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 100, 346, 180, 50, true,
+        boton(g, "ESPAÑOL", es ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 92, 382, 184, 52, true,
                 () -> ventana.cambiarIdioma(Configuracion.ESPAÑOL));
-        boton(g, "ENGLISH", !es ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 290, 346, 180, 50, true,
+        boton(g, "ENGLISH", !es ? Estilo.VERDE : Estilo.mezclar(Estilo.AZUL, -0.2), 284, 382, 184, 52, true,
                 () -> ventana.cambiarIdioma(Configuracion.INGLES));
-        texto(g, "La música y el idioma se guardan ahora,", 14, 280, 428, new Color(0xBF, 0xD6, 0xFF));
-        texto(g, "pero se activan en versiones siguientes.", 14, 280, 448, new Color(0xBF, 0xD6, 0xFF));
 
-        tarjeta(g, 520, 100, 420, 366, Estilo.AMARILLO, false);
-        Estilo.textoCentrado(g, "CONTROLES", Estilo.fuente(26), 730, 142, Estilo.AMARILLO);
-        controles(g, "JUGADOR 1", Estilo.AZUL_CLARO, 540, 172, "A / D", "W", "F", "G");
-        controles(g, "JUGADOR 2", Estilo.ROJO, 540, 318, "← / →", "↑", ". (punto)", ", (coma)");
-
-        boton(g, "VOLVER", Estilo.ROJO, 40, 482, 200, 56, true, ventana::irAPortada);
+        tarjeta(g, 520, 100, 420, 400, Estilo.AMARILLO, false);
+        Estilo.textoCentrado(g, "CONTROLES", Estilo.fuente(25), 730, 140, Estilo.AMARILLO);
+        controles(g, "JUGADOR 1", Estilo.AZUL_CLARO, 540, 158, "A / D", "W", "F", "G");
+        controles(g, "JUGADOR 2", Estilo.ROJO, 540, 328, "← / →", "↑", ". (punto)", ", (coma)");
     }
 
     private void fila(Graphics2D g, String texto, double y, boolean encendido, Runnable accion) {
-        g.setFont(Estilo.fuente(22));
-        double ancho = Estilo.ancho(g, Estilo.fuente(22), texto);
-        Estilo.textoCentrado(g, texto, Estilo.fuente(22), 90 + ancho / 2, y + 34, Color.WHITE);
-        interruptor(g, 330, y, encendido, accion);
+        // La etiqueta se achica sola si no cabe antes del interruptor, para que nunca quede tapada.
+        double maximo = 350 - 28 - 92;
+        Font f = Estilo.ajustar(g, Estilo.fuente(20), texto, maximo);
+        g.setFont(f);
+        g.setColor(Color.WHITE);
+        g.drawString(texto, 92f, (float) (y + 34));
+        interruptor(g, 360, y, encendido, accion);
     }
 
     private void controles(Graphics2D g, String nombre, Color color, double x, double y, String mover, String salto,
                            String patada, String poder) {
-        Estilo.textoCentrado(g, nombre, Estilo.fuente(20), x + 190, y + 18, color);
+        Estilo.textoCentrado(g, nombre, Estilo.fuente(21), x + 190, y + 20, color);
         String[][] filas = {{"Moverse", mover}, {"Saltar", salto}, {"Patear", patada}, {"Poder", poder}};
         for (int i = 0; i < filas.length; i++) {
-            double yy = y + 44 + i * 30;
-            g.setFont(Estilo.fuenteTexto(17));
+            double yy = y + 56 + i * 32;
+            g.setFont(Estilo.fuenteTexto(18));
             g.setColor(new Color(0xD8, 0xE6, 0xFF));
             g.drawString(filas[i][0], (float) (x + 60), (float) yy);
-            double w = Math.max(44, Estilo.ancho(g, Estilo.fuente(15), filas[i][1]) + 26);
-            Estilo.panel(g, x + 300 - w / 2, yy - 20, w, 26, 10, Color.WHITE, new Color(0x8A, 0x93, 0xA6));
-            Estilo.textoCentrado(g, filas[i][1], Estilo.fuente(15), x + 300, yy, Estilo.TEXTO_OSCURO);
+            double w = Math.max(48, Estilo.ancho(g, Estilo.fuente(16), filas[i][1]) + 28);
+            Estilo.panel(g, x + 300 - w / 2, yy - 21, w, 28, 10, Color.WHITE, new Color(0x8A, 0x93, 0xA6));
+            Estilo.textoCentrado(g, filas[i][1], Estilo.fuente(16), x + 300, yy - 1, Estilo.TEXTO_OSCURO);
         }
     }
 }

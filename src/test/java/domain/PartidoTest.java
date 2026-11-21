@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * muerte súbita, pausa y puntos.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 class PartidoTest {
 
@@ -321,5 +321,103 @@ class PartidoTest {
             assertTrue(p.getBalon().getX() >= 0 && p.getBalon().getX() <= Cancha.ANCHO);
         }
         assertTrue(p.isMuerteSubita() || Partido.ESTADO_TERMINADO.equals(p.getEstado()));
+    }
+
+    // orientación, daño y efectos
+
+    @Test
+    void cadaJugadorDeberiaMirarSiempreHaciaElArcoRivalAunqueSeCrucen() throws DOPOSoccerExcepcion {
+        Partido p = crear(Partido.TIPO_TIEMPO, 2);
+        pasarLaCuenta(p);
+        j1.empujar(580);   // el jugador izquierdo queda más a la derecha que el derecho
+        for (int i = 0; i < 20; i++) {
+            p.actualizar();
+        }
+        assertTrue(j1.getX() > j2.getX());
+        assertEquals(1, j1.getMirando(), "el izquierdo siempre mira a la derecha");
+        assertEquals(-1, j2.getMirando(), "el derecho siempre mira a la izquierda");
+    }
+
+    @Test
+    void elTornadoDeberiaCargarseDelanteDelPie() throws DOPOSoccerExcepcion {
+        Jugador nigeriano = new Jugador("Jugador 1", new Nigeria(), Porteria.IZQUIERDA);
+        Partido p = new Partido(nigeriano, j2, Partido.TIPO_TIEMPO, 2, cancha);
+        pasarLaCuenta(p);
+        nigeriano.cargarPoder(100);
+        nigeriano.activarPoder();
+        p.getBalon().setPosicion(nigeriano.getX() + 30, nigeriano.getY() - 60);
+        p.getBalon().setVelocidad(0, 0);
+        p.actualizar();
+        for (int i = 0; i < 25; i++) {
+            p.actualizar();
+        }
+        assertSame(nigeriano, p.getJugadorCargando());
+        assertEquals(nigeriano.getX() + nigeriano.getMirando() * (9 + Jugador.RADIO_PIE + Balon.RADIO + 3),
+                p.getBalon().getX(), 3);
+        assertEquals(Cancha.SUELO - Balon.RADIO, p.getBalon().getY(), 3);
+    }
+
+    /** Deja al jugador 1 disparando su poder contra el jugador 2, que está en su lugar. */
+    private void dispararPoderDelJugador1(Partido p) {
+        j1.cargarPoder(100);
+        j1.activarPoder();
+        p.getBalon().setPosicion(j1.getX() + 20, j1.getY() - Jugador.RADIO_CABEZA - Balon.RADIO + 3);
+        p.getBalon().setVelocidad(0, 3);
+        for (int i = 0; i < Partido.TICKS_CARGA_PODER + 2; i++) {
+            p.actualizar();
+        }
+    }
+
+    @Test
+    void unTiroDePoderQueGolpeaAlRivalDeberiaHacerleDañoYDejarleElEfecto() throws DOPOSoccerExcepcion {
+        Partido p = crear(Partido.TIPO_TIEMPO, 2);
+        pasarLaCuenta(p);
+        dispararPoderDelJugador1(p);
+        assertSame(j1, p.getLanzadorPoder());
+        for (int i = 0; i < 120 && j2.getVida() == 100; i++) {
+            p.actualizar();
+        }
+        assertEquals(60, j2.getVida(), 0.001, "el aura azul hace 40 de daño con Kick 1");
+        assertEquals(Jugador.EFECTO_EMPUJADO, j2.getEfecto());
+        assertEquals("", p.getBalon().getEfecto(), "al golpear, el tiro se acaba");
+        assertNull(p.getLanzadorPoder());
+        assertEquals(100, j1.getVida(), 0.001, "quien dispara no se hace daño");
+    }
+
+    @Test
+    void unTiroDePoderQueEntraAlArcoSinTocarAlRivalNoDeberiaHacerDañoNiEfecto() throws DOPOSoccerExcepcion {
+        Partido p = crear(Partido.TIPO_TIEMPO, 2);
+        pasarLaCuenta(p);
+        dispararPoderDelJugador1(p);
+        p.registrarGol(p.getPorteriaDerecha());
+        assertEquals(1, p.getMarcador().getGoles(j1), "el gol cuenta");
+        assertEquals(100, j2.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_NINGUNO, j2.getEfecto());
+        assertNull(p.getLanzadorPoder());
+    }
+
+    @Test
+    void despuesDeUnGolElAturdimientoYLosEfectosDeberianTerminar() throws DOPOSoccerExcepcion {
+        Partido p = crear(Partido.TIPO_TIEMPO, 2);
+        pasarLaCuenta(p);
+        j2.recibirDaño(500);
+        assertTrue(j2.estaAturdido());
+        p.registrarGol(p.getPorteriaIzquierda());
+        for (int i = 0; i < Partido.TICKS_CELEBRACION + 2; i++) {
+            p.actualizar();
+        }
+        assertEquals(Partido.ESTADO_EN_CURSO, p.getEstado());
+        assertFalse(j2.estaAturdido());
+        assertEquals(100, j2.getVida(), 0.001);
+    }
+
+    @Test
+    void unPartidoNuevoDeberiaEmpezarConLaVidaAlMaximo() throws DOPOSoccerExcepcion {
+        j1.recibirDaño(40);
+        j1.setSurvival(4);
+        Partido p = crear(Partido.TIPO_TIEMPO, 2);
+        j1.prepararPartido(j1.getPersonaje());
+        assertEquals(130, j1.getVida(), 0.001);
+        assertEquals(Partido.ESTADO_CUENTA, p.getEstado());
     }
 }

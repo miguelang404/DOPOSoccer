@@ -71,6 +71,23 @@ final class Estilo {
     }
 
     /**
+     * Achica una fuente hasta que el texto quepa en el ancho dado (sin bajar de 11 puntos).
+     *
+     * @param g        el pincel
+     * @param f        la fuente de partida
+     * @param texto    el texto que debe caber
+     * @param maxAncho ancho máximo disponible
+     * @return la misma fuente o una más pequeña
+     */
+    static Font ajustar(Graphics2D g, Font f, String texto, double maxAncho) {
+        Font actual = f;
+        while (actual.getSize2D() > 11 && ancho(g, actual, texto) > maxAncho) {
+            actual = actual.deriveFont(actual.getSize2D() - 1);
+        }
+        return actual;
+    }
+
+    /**
      * Enciende el suavizado para que todo se vea liso.
      *
      * @param g el pincel

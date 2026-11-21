@@ -219,6 +219,61 @@ abstract class PantallaBase extends JPanel {
         g.drawString(texto, (float) (x + (w - tw) / 2), (float) ty);
     }
 
+    /**
+     * Botón de volver: pequeño y discreto, en la esquina de arriba a la izquierda, para que no le
+     * quite protagonismo a las acciones principales de cada pantalla.
+     */
+    protected void botonVolver(Graphics2D g, Runnable accion) {
+        double x = 24;
+        double y = 16;
+        double w = 118;
+        double h = 36;
+        Rectangle2D area = new Rectangle2D.Double(x, y, w, h);
+        zonasNuevas.add(new Zona(area, accion));
+        boolean sobre = esZona(encima, area);
+        boolean hundido = esZona(presionada, area);
+        g.setColor(sobre ? new Color(255, 255, 255, 60) : new Color(6, 14, 38, 150));
+        g.fill(new RoundRectangle2D.Double(x, y + (hundido ? 1 : 0), w, h, h, h));
+        g.setColor(new Color(255, 255, 255, sobre ? 210 : 120));
+        g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.draw(new RoundRectangle2D.Double(x, y + (hundido ? 1 : 0), w, h, h, h));
+        // flechita hacia la izquierda
+        double ay = y + h / 2 + (hundido ? 1 : 0);
+        java.awt.geom.Path2D flecha = new java.awt.geom.Path2D.Double();
+        flecha.moveTo(x + 27, ay - 7);
+        flecha.lineTo(x + 19, ay);
+        flecha.lineTo(x + 27, ay + 7);
+        g.draw(flecha);
+        Font f = Estilo.fuenteTexto(15);
+        g.setFont(f);
+        g.setColor(Color.WHITE);
+        g.drawString("VOLVER", (float) (x + 38), (float) (ay + 5.5));
+    }
+
+    /**
+     * Ventana de confirmación dibujada con el estilo del juego. Mientras se muestra, la pantalla de
+     * abajo no debe registrar botones (para que no se pueda hacer clic detrás).
+     *
+     * @param pregunta lo que se pregunta
+     * @param detalle  una línea de explicación (puede ser vacía)
+     * @param textoSi  texto del botón que confirma
+     * @param textoNo  texto del botón que cancela
+     * @param si       qué pasa si confirma
+     * @param no       qué pasa si cancela
+     */
+    protected void confirmacion(Graphics2D g, String pregunta, String detalle, String textoSi, String textoNo,
+                                Runnable si, Runnable no) {
+        velo(g, 175);
+        tarjeta(g, 270, 150, 460, 250, Estilo.AMARILLO, true);
+        Font f = Estilo.ajustar(g, Estilo.fuente(30), pregunta, 410);
+        Estilo.textoCentrado(g, pregunta, f, 500, 220, Estilo.AMARILLO);
+        if (!detalle.isEmpty()) {
+            texto(g, detalle, 16, 500, 256, new Color(0xD8, 0xE6, 0xFF));
+        }
+        boton(g, textoSi, Estilo.ROJO, 300, 300, 195, 58, true, si);
+        boton(g, textoNo, Estilo.VERDE, 505, 300, 195, 58, true, no);
+    }
+
     private boolean esZona(Zona z, Rectangle2D area) {
         return z != null && z.area.equals(area);
     }

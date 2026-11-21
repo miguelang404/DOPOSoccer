@@ -30,12 +30,34 @@ public class Jugador {
     /** Duración de la patada, en ticks. */
     public static final int DURACION_PATADA = 14;
 
+    /** Daño base de una patada que le llega al rival (se multiplica por el multiplicadorKick). */
+    public static final double DANO_PATADA_BASE = 10;
+    /** Lo que dura el aturdimiento cuando la vida llega a cero: 3 segundos. */
+    public static final int TICKS_ATURDIMIENTO = 3 * 60;
+
     public static final int ESTADISTICA_MINIMA = 1;
     public static final int ESTADISTICA_MAXIMA = 10;
+    /** Lo que cuesta la primera mejora de una estadística; cada mejora siguiente cuesta el doble. */
+    public static final int COSTO_BASE_MEJORA = 500;
+
+    // Las estadísticas que se pueden mejorar con puntos.
+    public static final String SPEED = "SPEED";
+    public static final String JUMP = "JUMP";
+    public static final String KICK = "KICK";
+    public static final String SURVIVAL = "SURVIVAL";
+
+    // Los efectos que un tiro de poder le puede dejar al rival.
+    public static final String EFECTO_NINGUNO = "";
+    public static final String EFECTO_EMPUJADO = "EMPUJADO";
+    public static final String EFECTO_ELECTROCUTADO = "ELECTROCUTADO";
+    public static final String EFECTO_INCONSCIENTE = "INCONSCIENTE";
+    public static final String EFECTO_CONFUNDIDO = "CONFUNDIDO";
 
     private static final double VELOCIDAD_BASE = 6.2;
     private static final double SALTO_BASE = 11.0;
     private static final double VELOCIDAD_PATADA = 16;
+    private static final double VELOCIDAD_EMPUJE = 9;
+    private static final double FUERZA_TORNADO = 14;
     private static final int LIMITE_IZQUIERDO = Cancha.PORTERIA_ANCHO + 40;
     private static final int LIMITE_DERECHO = Cancha.ANCHO - Cancha.PORTERIA_ANCHO - 40;
 
@@ -58,11 +80,17 @@ public class Jugador {
     private double poder;
     private boolean poderActivo;
 
+    private double vida;
+    private int ticksAturdido;
+    private String efecto = EFECTO_NINGUNO;
+    private int ticksEfecto;
+
     private int direccionPedida;
     private boolean saltoPedido;
     private boolean patadaPedida;
     private int ticksPatada;
     private boolean golpeAplicado;
+    private boolean golpeRivalAplicado;
 
     /**
      * Crea un jugador.
@@ -75,13 +103,14 @@ public class Jugador {
         this.nombre = nombre;
         this.personaje = personaje;
         this.lado = lado;
+        this.vida = getVidaMaxima();
         reubicar();
     }
 
     /**
      * Prepara al jugador para un partido nuevo: personaje elegido, barra de poder
-     * vacía y de vuelta en su posición inicial. Los puntos y las estadísticas se
-     * conservan.
+     * vacía, vida al máximo y de vuelta en su posición inicial. Los puntos y las
+     * estadísticas se conservan.
      *
      * @param nuevoPersonaje el personaje con el que va a jugar
      */
@@ -89,19 +118,34 @@ public class Jugador {
         this.personaje = nuevoPersonaje;
         this.poder = 0;
         this.poderActivo = false;
+        this.vida = getVidaMaxima();
+        this.ticksAturdido = 0;
         reubicar();
     }
 
-    /** Lo devuelve a su lugar de salida (después de cada gol, por ejemplo). */
+    /**
+     * Lo devuelve a su lugar de salida (después de cada gol, por ejemplo). Los
+     * efectos y el aturdimiento se acaban; la vida se conserva, salvo que
+     * estuviera aturdido, que vuelve al máximo como al terminar el aturdimiento.
+     */
     public void reubicar() {
         x = Porteria.IZQUIERDA.equals(lado) ? 250 : Cancha.ANCHO - 250;
         y = Cancha.SUELO - ALTURA_CENTRO;
         vx = 0;
         vy = 0;
+        // Cada jugador siempre mira hacia el arco rival: el de la izquierda a la derecha y el de la
+        // derecha a la izquierda. Nunca se voltea.
         mirando = Porteria.IZQUIERDA.equals(lado) ? 1 : -1;
         limpiarPedidos();
         ticksPatada = 0;
         golpeAplicado = false;
+        golpeRivalAplicado = false;
+        efecto = EFECTO_NINGUNO;
+        ticksEfecto = 0;
+        if (ticksAturdido > 0) {
+            ticksAturdido = 0;
+            vida = getVidaMaxima();
+        }
     }
 
     // pedidos
@@ -149,10 +193,22 @@ public class Jugador {
 
     // cada instante
 
-    /** Avanza al jugador un tick: caminar, saltar, caer, patear y cargar poder. */
+    /** Avanza al jugador un tick: caminar, saltar, caer, patear, cargar poder y gastar sus efectos. */
     public void actualizar() {
-        // Caminar
-        vx = direccionPedida * VELOCIDAD_BASE * getMultiplicadorVelocidad();
+        boolean puedeActuar = puedeActuar();
+        boolean empujado = EFECTO_EMPUJADO.equals(efecto) && ticksAturdido == 0;
+        boolean electrocutado = EFECTO_ELECTROCUTADO.equals(efecto) && ticksAturdido == 0;
+
+        // Caminar: aturdido o inconsciente no se mueve; empujado va solo hacia su propio arco;
+        // electrocutado camina a la mitad de la velocidad.
+        if (empujado) {
+            vx = -getDireccionAtaque() * VELOCIDAD_EMPUJE;
+        } else if (puedeActuar) {
+            double factor = electrocutado ? 0.5 : 1;
+            vx = direccionPedida * VELOCIDAD_BASE * getMultiplicadorVelocidad() * factor;
+        } else {
+            vx = 0;
+        }
         x += vx;
         if (x < LIMITE_IZQUIERDO) {
             x = LIMITE_IZQUIERDO;
@@ -161,10 +217,10 @@ public class Jugador {
             x = LIMITE_DERECHO;
         }
 
-        // Saltar y caer
+        // Saltar y caer (electrocutado no puede saltar)
         double piso = Cancha.SUELO - ALTURA_CENTRO;
         boolean enElPiso = y >= piso;
-        if (saltoPedido && enElPiso) {
+        if (saltoPedido && enElPiso && puedeActuar && !electrocutado) {
             vy = -SALTO_BASE * getMultiplicadorSalto();
         }
         saltoPedido = false;
@@ -175,10 +231,11 @@ public class Jugador {
             vy = 0;
         }
 
-        // Patada
-        if (patadaPedida && ticksPatada == 0) {
+        // Patada (aturdido o inconsciente no puede patear)
+        if (patadaPedida && ticksPatada == 0 && puedeActuar) {
             ticksPatada = 1;
             golpeAplicado = false;
+            golpeRivalAplicado = false;
         } else if (ticksPatada > 0) {
             ticksPatada++;
             if (ticksPatada > DURACION_PATADA) {
@@ -189,6 +246,24 @@ public class Jugador {
 
         // Poder
         cargarPoder(PODER_MAXIMO / TICKS_CARGA);
+
+        gastarEfectos();
+    }
+
+    /** Descuenta un tick al aturdimiento y al efecto que tenga encima. */
+    private void gastarEfectos() {
+        if (ticksAturdido > 0) {
+            ticksAturdido--;
+            if (ticksAturdido == 0) {
+                vida = getVidaMaxima();   // al despertar, la vida vuelve al máximo
+            }
+        }
+        if (ticksEfecto > 0) {
+            ticksEfecto--;
+            if (ticksEfecto == 0) {
+                efecto = EFECTO_NINGUNO;
+            }
+        }
     }
 
     /**
@@ -219,25 +294,104 @@ public class Jugador {
     }
 
     /**
-     * Se gira hacia donde está el rival.
-     *
-     * @param xRival posición horizontal del rival
-     */
-    public void mirarHacia(double xRival) {
-        if (xRival > x) {
-            mirando = 1;
-        } else if (xRival < x) {
-            mirando = -1;
-        }
-    }
-
-    /**
      * Separa a este jugador de otro cuando se chocan de lado (se mueve en x).
      *
      * @param desplazamiento cuánto se corre
      */
     public void empujar(double desplazamiento) {
         x = Math.max(LIMITE_IZQUIERDO, Math.min(LIMITE_DERECHO, x + desplazamiento));
+    }
+
+    // vida, daño y efectos
+
+    /**
+     * Le quita vida. Nunca baja de cero: cuando llega a cero queda aturdido
+     * (no se mueve, no salta ni patea) durante 3 segundos y después su vida
+     * vuelve al máximo. Mientras está aturdido no recibe más daño.
+     *
+     * @param daño cuánto daño recibe
+     */
+    public void recibirDaño(double daño) {
+        if (ticksAturdido > 0 || daño <= 0) {
+            return;
+        }
+        vida = Math.max(0, vida - daño);
+        if (vida == 0) {
+            ticksAturdido = TICKS_ATURDIMIENTO;
+            efecto = EFECTO_NINGUNO;   // el aturdimiento manda sobre cualquier otro efecto
+            ticksEfecto = 0;
+            ticksPatada = 0;
+        }
+    }
+
+    /**
+     * Le deja un efecto de un tiro de poder. Los efectos no se acumulan: si ya
+     * tenía uno, el nuevo lo reemplaza. Si está aturdido no pasa nada.
+     *
+     * @param nuevoEfecto uno de los EFECTO_...
+     * @param ticks       cuánto dura
+     */
+    public void aplicarEfecto(String nuevoEfecto, int ticks) {
+        if (ticksAturdido > 0) {
+            return;
+        }
+        efecto = nuevoEfecto;
+        ticksEfecto = ticks;
+        if (!EFECTO_NINGUNO.equals(nuevoEfecto) && !EFECTO_CONFUNDIDO.equals(nuevoEfecto)) {
+            ticksPatada = 0;
+        }
+    }
+
+    /**
+     * Lo lanza hacia arriba (lo usa el Tornado).
+     */
+    public void lanzarAlAire() {
+        vy = -FUERZA_TORNADO;
+    }
+
+    /**
+     * Si está pateando y su pie le alcanza al rival, le hace daño: 10 x multiplicadorKick.
+     * Solo cuenta una vez por patada. Si la patada no le llega al rival, no pasa nada
+     * (y si toca el balón, el balón simplemente sale impulsado).
+     *
+     * @param rival el otro jugador
+     * @return true si le hizo daño
+     */
+    public boolean golpearConPie(Jugador rival) {
+        if (!estaPateando() || golpeRivalAplicado || getProgresoPatada() <= 0.35) {
+            return false;
+        }
+        // El rival se toma como un círculo un poco más grande que la cabeza, para incluir el cuerpo.
+        double distancia = Math.hypot(getPieX() - rival.getX(), getPieY() - (rival.getY() + 14));
+        if (distancia < RADIO_PIE + RADIO_CABEZA + 7) {
+            golpeRivalAplicado = true;
+            rival.recibirDaño(DANO_PATADA_BASE * getMultiplicadorKick());
+            return true;
+        }
+        return false;
+    }
+
+    /** @return true si puede moverse, saltar y patear (no está aturdido, inconsciente ni siendo empujado) */
+    public boolean puedeActuar() {
+        return ticksAturdido == 0 && !EFECTO_INCONSCIENTE.equals(efecto) && !EFECTO_EMPUJADO.equals(efecto);
+    }
+
+    /** @return true mientras está aturdido porque su vida llegó a cero */
+    public boolean estaAturdido() {
+        return ticksAturdido > 0;
+    }
+
+    public double getVida() {
+        return vida;
+    }
+
+    /** @return el efecto de poder que tiene encima (EFECTO_NINGUNO si no tiene) */
+    public String getEfecto() {
+        return efecto;
+    }
+
+    public int getTicksEfecto() {
+        return ticksEfecto;
     }
 
     // el balón
@@ -401,6 +555,78 @@ public class Jugador {
 
     public int getSurvival() {
         return survival;
+    }
+
+    // mejoras con puntos
+
+    /**
+     * @param estadistica SPEED, JUMP, KICK o SURVIVAL
+     * @return el nivel actual (de 1 a 10)
+     * @throws DOPOSoccerExcepcion si la estadística no existe
+     */
+    public int getNivel(String estadistica) throws DOPOSoccerExcepcion {
+        if (SPEED.equals(estadistica)) {
+            return speed;
+        } else if (JUMP.equals(estadistica)) {
+            return jump;
+        } else if (KICK.equals(estadistica)) {
+            return kick;
+        } else if (SURVIVAL.equals(estadistica)) {
+            return survival;
+        }
+        throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.ESTADISTICA_DESCONOCIDA));
+    }
+
+    /**
+     * Lo que cuesta subir la estadística un punto: 500, 1000, 2000... (se duplica con cada mejora).
+     *
+     * @param estadistica SPEED, JUMP, KICK o SURVIVAL
+     * @return el costo en puntos, o -1 si ya está en el máximo
+     * @throws DOPOSoccerExcepcion si la estadística no existe
+     */
+    public int getCostoMejora(String estadistica) throws DOPOSoccerExcepcion {
+        int nivel = getNivel(estadistica);
+        if (nivel >= ESTADISTICA_MAXIMA) {
+            return -1;
+        }
+        return COSTO_BASE_MEJORA * (1 << (nivel - 1));
+    }
+
+    /** @return true si hay puntos suficientes y la estadística no está en su máximo */
+    public boolean puedeMejorar(String estadistica) {
+        try {
+            int costo = getCostoMejora(estadistica);
+            return costo > 0 && puntos >= costo;
+        } catch (DOPOSoccerExcepcion e) {
+            return false;
+        }
+    }
+
+    /**
+     * Compra un punto de mejora: gasta los puntos y sube la estadística uno.
+     *
+     * @param estadistica SPEED, JUMP, KICK o SURVIVAL
+     * @throws DOPOSoccerExcepcion si no existe, ya está en el máximo o no alcanzan los puntos
+     */
+    public void mejorar(String estadistica) throws DOPOSoccerExcepcion {
+        int costo = getCostoMejora(estadistica);
+        if (costo < 0) {
+            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.ESTADISTICA_AL_MAXIMO));
+        }
+        if (puntos < costo) {
+            throw RegistroErrores.registrar(new DOPOSoccerExcepcion(DOPOSoccerExcepcion.PUNTOS_INSUFICIENTES));
+        }
+        puntos -= costo;
+        int nuevo = getNivel(estadistica) + 1;
+        if (SPEED.equals(estadistica)) {
+            speed = nuevo;
+        } else if (JUMP.equals(estadistica)) {
+            jump = nuevo;
+        } else if (KICK.equals(estadistica)) {
+            kick = nuevo;
+        } else {
+            survival = nuevo;
+        }
     }
 
     /**

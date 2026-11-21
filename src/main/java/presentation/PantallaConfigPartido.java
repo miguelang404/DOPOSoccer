@@ -21,6 +21,7 @@ class PantallaConfigPartido extends PantallaBase {
     @Override
     protected void pintar(Graphics2D g, double t) {
         velo(g, 135);
+        botonVolver(g, ventana::irAPersonajes);
         titulo(g, "CONFIGURA EL PARTIDO", 78);
         tarjeta(g, 120, 100, 760, 366, Estilo.AZUL_CLARO, false);
 
@@ -60,7 +61,6 @@ class PantallaConfigPartido extends PantallaBase {
                     ancho, 46, true, () -> ventana.setResolucion(indice));
         }
 
-        boton(g, "VOLVER", Estilo.ROJO, 40, 482, 200, 56, true, ventana::irAPersonajes);
-        boton(g, "¡A JUGAR!", Estilo.VERDE, 700, 482, 260, 56, true, ventana::iniciarPartido);
+        boton(g, "¡A JUGAR!", Estilo.VERDE, 370, 482, 260, 56, true, ventana::iniciarPartido);
     }
 }

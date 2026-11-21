@@ -2,8 +2,7 @@ package domain;
 
 /**
  * Poder de Corea del Sur: el balón sale recto y horizontal, a mucha velocidad.
- * (Cuando golpee al rival lo empujará hacia su propio arco; eso llega en una
- * versión posterior.)
+ * Si golpea al rival, lo lanza hacia su propio arco durante 1,5 segundos.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
@@ -20,5 +19,10 @@ public class AuraAzul extends Poder {
         Balon balon = partido.getBalon();
         balon.impulsar(atacante.getDireccionAtaque() * 24, 0);
         balon.setEfecto(getCodigo(), 120);
+    }
+
+    @Override
+    protected void efectoSobreRival(Partido partido, Jugador atacante, Jugador rival) {
+        rival.aplicarEfecto(Jugador.EFECTO_EMPUJADO, getDuracionTicks());
     }
 }

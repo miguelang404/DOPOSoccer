@@ -1,7 +1,9 @@
 package domain;
 
 /**
- * Poder de Nigeria: un remolino a ras de suelo que va rebotando rápido.
+ * Poder de Nigeria: un remolino a ras de suelo que va rebotando rápido. Sale desde
+ * delante del pie (no de la frente, como los demás). Si golpea al rival, lo lanza al
+ * aire y lo deja inconsciente 3 segundos: no puede moverse, saltar ni patear.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
@@ -20,5 +22,16 @@ public class Tornado extends Poder {
         balon.setPosicion(balon.getX(), Cancha.SUELO - Balon.RADIO);
         balon.impulsar(atacante.getDireccionAtaque() * 17, 0);
         balon.setEfecto(getCodigo(), 150);
+    }
+
+    @Override
+    public boolean saleDelPie() {
+        return true;
+    }
+
+    @Override
+    protected void efectoSobreRival(Partido partido, Jugador atacante, Jugador rival) {
+        rival.aplicarEfecto(Jugador.EFECTO_INCONSCIENTE, getDuracionTicks());
+        rival.lanzarAlAire();
     }
 }

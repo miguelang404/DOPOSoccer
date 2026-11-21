@@ -1,28 +1,39 @@
-# Head Soccer · DOPOSoccer (Versión 1)
+# DOPO SOCCER · DOPOSoccer
 
 Hola. Este es nuestro proyecto de DOPO 2026-2: una versión de **Head Soccer**, ese juego de fútbol de cabezones, hecha
-en Java con Swing. Lo estamos construyendo entre los dos, por versiones, y esto que ves es la **Versión 1:
-Presentación + Dominio**.
+en Java con Swing. Lo estamos construyendo entre los dos, por versiones. Empezó con la **Versión 1: Presentación +
+Dominio** y ya trae la vida, el daño, los efectos de los poderes y las mejoras de estadísticas.
 
 **Autores:** César Daniel Morales Sandoval y Miguel de la Peña **Curso:** Desarrollo Orientado por Objetos (DOPO),
 Escuela Colombiana de Ingeniería Julio Garavito, 2026-2
 
 ---
 
-## ¿Qué se puede hacer en esta versión?
+## ¿Qué se puede hacer?
 
 Se puede jugar un partido de **jugador contra jugador** en un mismo teclado, con el estilo del juego original: estadio
 con público, arcos con red, cabezones sencillos y planos, sin expresiones, y el balón girando.
 
-- **Menús:** portada, elección de modalidad, elección de personaje para cada jugador, configuración del partido y
-  configuración general (sonido, música e idioma).
+- **Menús:** portada (con confirmación al salir), elección de modalidad, elección de personaje para cada jugador,
+  mejoras de estadísticas, configuración del partido y configuración general (sonido, música e idioma).
 - **Personajes:** Corea del Sur, Camerún, Nigeria y Estados Unidos. Cada uno tiene su tiro de poder: Aura Azul, Rayo,
   Tornado e Ilusión (que reparte siete balones falsos).
 - **Partidos:** por tiempo (de 1 a 10 minutos) o por goles (de 1 a 20). Si el tiempo se acaba empatado, se juega muerte
   súbita: gana el siguiente gol.
 - **Poder:** la barra se llena sola en 10 segundos y además sube un cuarto cada vez que te hacen un gol. Cuando está
-  llena la activas, y el siguiente toque al balón lanza el tiro especial.
-- **Puntos:** el ganador se lleva 100 y el perdedor 25.
+  llena la activas, y el siguiente toque al balón lanza el tiro especial (para Nigeria, el balón se carga delante del
+  pie y no de la frente).
+- **Vida y daño:** cada jugador tiene vida (100 con Survival 1). Una patada que le llega al rival le quita
+  10 x multiplicadorKick; un tiro de poder que lo golpea le quita el daño de su poder x multiplicadorKick. Si el tiro
+  entra al arco sin tocar al rival, el gol cuenta pero no hay daño ni efecto.
+- **Efectos de los poderes:** Aura Azul empuja al rival hacia su propio arco (1,5 s), Rayo lo electrocuta (3 s: no salta
+  y va a la mitad de velocidad), Tornado lo lanza al aire inconsciente (3 s) e Ilusión lo confunde con ocho balones
+  iguales (2,5 s). Los efectos no se acumulan: el nuevo reemplaza al anterior.
+- **Aturdimiento:** cuando la vida llega a cero, el jugador no se mueve, no salta ni patea durante 3 segundos y después
+  recupera toda su vida.
+- **Puntos y mejoras:** el ganador se lleva 100 y el perdedor 25. Con esos puntos se sube Velocidad, Salto, Patada o
+  Vida (de 1 a 10); la primera mejora de cada una cuesta 500 y cada siguiente cuesta el doble. Cada punto de mejora
+  suma un 10 %. Los puntos y las mejoras se conservan de un partido a otro mientras el juego esté abierto.
 - **Extras:** cuenta regresiva, celebración con confeti, pausa, revancha y tres tamaños de ventana.
 
 ## ¿Qué todavía no está?
@@ -30,8 +41,7 @@ con público, arcos con red, cabezones sencillos y planos, sin expresiones, y el
 Lo dejamos para las próximas versiones, y preferimos decirlo claro:
 
 - Jugar contra la máquina (se ve en el menú, pero está bloqueado).
-- Vida, daño y efectos de los poderes sobre el rival. Por ahora los poderes cambian cómo sale el balón.
-- Mejoras de estadísticas y guardar el progreso.
+- Guardar y abrir partidas, y guardar el progreso (puntos y mejoras) entre una sesión y otra.
 - La música y el idioma se guardan en la configuración, pero todavía no cambian nada en el juego.
 
 ## Cómo correrlo (requisitos)
@@ -74,9 +84,10 @@ jugador solo ve un mensaje amable.
 
 ## Pruebas
 
-Tenemos 84 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
-el partido, los poderes y la clase `Juego`, incluyendo los casos en los que algo debe fallar (minutos fuera de rango, un
-idioma que no existe, jugar contra la máquina antes de tiempo, etc.).
+Tenemos 115 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
+el partido, los poderes y la clase `Juego`, incluyendo la vida, el daño, los efectos, el aturdimiento y las mejoras, y los
+casos en los que algo debe fallar (minutos fuera de rango, un idioma que no existe, jugar contra la máquina antes de
+tiempo, mejorar sin puntos suficientes, etc.).
 
 ## Uso de inteligencia artificial
 

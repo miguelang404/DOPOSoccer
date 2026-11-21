@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pruebas de la puerta de entrada al dominio: Juego y Configuracion.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 class JuegoTest {
 
@@ -143,5 +143,18 @@ class JuegoTest {
             java.nio.file.Files.deleteIfExists(temporal);
             RegistroErrores.setArchivo("logs/errores.log");
         }
+    }
+
+    @Test
+    void lospuntosYLasMejorasDeberianConservarseEntrePartidos() throws DOPOSoccerExcepcion {
+        Juego juego = new Juego();
+        Personaje[] lista = juego.getPersonajes();
+        juego.iniciarPartido(lista[0], lista[1], Partido.TIPO_GOLES, 1, Cancha.MEDIANA);
+        juego.getJugador1().sumarPuntos(600);
+        juego.getJugador1().mejorar(Jugador.KICK);
+        juego.iniciarPartido(lista[2], lista[3], Partido.TIPO_GOLES, 1, Cancha.MEDIANA);
+        assertEquals(2, juego.getJugador1().getKick());
+        assertEquals(100, juego.getJugador1().getPuntos());
+        assertEquals(juego.getJugador1().getVidaMaxima(), juego.getJugador1().getVida(), 0.001);
     }
 }

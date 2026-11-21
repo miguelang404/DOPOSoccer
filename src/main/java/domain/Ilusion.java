@@ -39,4 +39,11 @@ public class Ilusion extends Poder {
         real.impulsar(d * 17, 0);
         real.setEfecto(getCodigo(), DURACION_TICKS);
     }
+
+    @Override
+    protected void efectoSobreRival(Partido partido, Jugador atacante, Jugador rival) {
+        // El rival queda confundido: los balones falsos siguen en juego todo el tiempo que dura el efecto.
+        rival.aplicarEfecto(Jugador.EFECTO_CONFUNDIDO, getDuracionTicks());
+        partido.prolongarSeñuelos(getDuracionTicks());
+    }
 }

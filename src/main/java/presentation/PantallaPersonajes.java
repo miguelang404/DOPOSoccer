@@ -49,69 +49,70 @@ class PantallaPersonajes extends PantallaBase {
     @Override
     protected void pintar(Graphics2D g, double t) {
         velo(g, 130);
+        botonVolver(g, ventana::irAModalidad);
         titulo(g, "ELIGE TU PERSONAJE", 78);
         panelJugador(g, 0, 40, Estilo.AZUL_CLARO, "JUGADOR 1", "A  /  D", t);
         panelJugador(g, 1, 520, Estilo.ROJO, "JUGADOR 2", "←  /  →", t);
-        boton(g, "VOLVER", Estilo.ROJO, 40, 488, 200, 56, true, ventana::irAModalidad);
-        boton(g, "CONTINUAR", Estilo.VERDE, 740, 488, 220, 56, true, ventana::irAConfigPartido);
+        boton(g, "MEJORAS", Estilo.NARANJA, 290, 498, 200, 50, true, ventana::irAMejoras);
+        boton(g, "CONTINUAR", Estilo.VERDE, 510, 498, 200, 50, true, ventana::irAConfigPartido);
     }
 
     private void panelJugador(Graphics2D g, int jugador, double x, Color color, String titulo, String teclas, double t) {
         double w = 440;
-        double y = 96;
-        double h = 380;
+        double y = 94;
+        double h = 396;
         tarjeta(g, x, y, w, h, color, false);
         Personaje[] lista = ventana.getJuego().getPersonajes();
         int elegido = ventana.getPersonajeElegido(jugador);
         Personaje p = lista[elegido];
         double cx = x + w / 2;
 
-        Estilo.textoCentrado(g, titulo, Estilo.fuente(26), cx, y + 36, color);
-        texto(g, "Teclas: " + teclas, 14, cx, y + 56, new Color(0xBF, 0xD6, 0xFF));
+        Estilo.textoCentrado(g, titulo, Estilo.fuente(24), cx, y + 34, color);
+        texto(g, "Teclas: " + teclas, 14, cx, y + 54, new Color(0xBF, 0xD6, 0xFF));
 
         // Vitrina con el personaje en grande
-        g.setPaint(new java.awt.RadialGradientPaint((float) cx, (float) (y + 150), 130f, new float[]{0f, 1f},
+        g.setPaint(new java.awt.RadialGradientPaint((float) cx, (float) (y + 150), 120f, new float[]{0f, 1f},
                 new Color[]{Estilo.conAlfa(color, 110), Estilo.conAlfa(color, 0)}));
-        g.fill(new Ellipse2D.Double(cx - 130, y + 10, 260, 260));
+        g.fill(new Ellipse2D.Double(cx - 120, y + 30, 240, 240));
         boolean alterno = jugador == 1 && ventana.getPersonajeElegido(0) == elegido;
         AffineTransform original = g.getTransform();
-        g.translate(cx, y + 62);
-        g.scale(1.0, 1.0);
+        g.translate(cx, y + 74);
         double mirada = jugador == 0 ? 1 : -1;
-        DibujoPersonaje.dibujarGrande(g, 0, 48 + Math.sin(t * 0.08) * 3, 168, p.getCodigo(), alterno, (int) mirada, 0,
+        DibujoPersonaje.dibujarGrande(g, 0, 42 + Math.sin(t * 0.08) * 3, 148, p.getCodigo(), alterno, (int) mirada, 0,
                 p.getPoder().getCodigo(), t);
         g.setTransform(original);
 
         // Bandera y nombre
         DibujoBandera.dibujar(g, p.getCodigo(), x + 22, y + 22, 54, 36);
-        Estilo.textoCentrado(g, p.getPais().toUpperCase(), Estilo.fuente(30), cx, y + 254, Color.WHITE);
-        Estilo.textoCentrado(g, "Poder: " + p.getPoder().getNombre(), Estilo.fuente(20), cx, y + 278,
+        Font fNombre = Estilo.ajustar(g, Estilo.fuente(28), p.getPais().toUpperCase(), w - 60);
+        Estilo.textoCentrado(g, p.getPais().toUpperCase(), fNombre, cx, y + 248, Color.WHITE);
+        Estilo.textoCentrado(g, "Poder: " + p.getPoder().getNombre(), Estilo.fuente(18), cx, y + 274,
                 Estilo.mezclar(DibujoBalon.colorEfecto(p.getPoder().getCodigo()), 0.35));
-        Font f = Estilo.fuenteTexto(15);
+        Font f = Estilo.fuenteTexto(14);
         g.setFont(f);
         int linea = 0;
-        for (String l : partir(g, p.getPoder().getDescripcion(), f, w - 60)) {
+        for (String l : partir(g, p.getPoder().getDescripcion(), f, w - 70)) {
             if (linea < 2) {
-                texto(g, l, 15, cx, y + 300 + linea * 18, new Color(0xD8, 0xE6, 0xFF));
+                texto(g, l, 14, cx, y + 298 + linea * 19, new Color(0xD8, 0xE6, 0xFF));
             }
             linea++;
         }
 
-        // Selector con las cuatro banderas
+        // Selector con las cuatro banderas (bien separado del texto de arriba)
         double tam = 72;
         double sep = 14;
         double inicio = cx - (lista.length * tam + (lista.length - 1) * sep) / 2;
         for (int i = 0; i < lista.length; i++) {
             final int indice = i;
             double bx = inicio + i * (tam + sep);
-            double by = y + h - 34;
+            double by = y + h - 36;
             boolean sel = i == elegido;
             boolean hover = zona(bx, by - 22, tam, 54, () -> ventana.elegirPersonaje(jugador, indice));
             if (sel) {
                 g.setColor(Estilo.conAlfa(color, 130));
-                g.fill(new RoundRectangle2D.Double(bx - 6, by - 28, tam + 12, 66, 18, 18));
+                g.fill(new RoundRectangle2D.Double(bx - 6, by - 24, tam + 12, 58, 18, 18));
             }
-            DibujoBandera.dibujar(g, lista[i].getCodigo(), bx + 6, by - 18, tam - 12, 46 - 8);
+            DibujoBandera.dibujar(g, lista[i].getCodigo(), bx + 6, by - 18, tam - 12, 38);
             g.setColor(sel ? Color.WHITE : (hover ? Estilo.AMARILLO : new Color(255, 255, 255, 120)));
             g.setStroke(new java.awt.BasicStroke(sel ? 4f : 2f));
             g.draw(new RoundRectangle2D.Double(bx + 5, by - 19, tam - 10, 40, 6, 6));

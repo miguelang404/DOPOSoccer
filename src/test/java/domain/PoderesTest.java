@@ -5,14 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import util.RegistroErrores;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pruebas de los cuatro tiros de poder, cada uno aplicado sobre un partido real.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 class PoderesTest {
 
@@ -83,5 +82,74 @@ class PoderesTest {
         double base = poder.calcularDaño(atacante);
         atacante.setKick(6);
         assertEquals(base * 1.5, poder.calcularDaño(atacante), 0.0001);
+    }
+
+    // daño y efectos al golpear al rival
+
+    private void golpear(Personaje personaje, String lado) throws DOPOSoccerExcepcion {
+        armar(personaje, lado);
+        personaje.getPoder().golpear(partido, atacante, rival);
+    }
+
+    @Test
+    void auraAzulDeberiaHacerDañoYEmpujarAlRival() throws DOPOSoccerExcepcion {
+        golpear(new CoreaDelSur(), Porteria.IZQUIERDA);
+        assertEquals(60, rival.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_EMPUJADO, rival.getEfecto());
+        assertEquals(90, rival.getTicksEfecto());
+    }
+
+    @Test
+    void rayoDeberiaElectrocutarAlRival() throws DOPOSoccerExcepcion {
+        golpear(new Camerun(), Porteria.IZQUIERDA);
+        assertEquals(40, rival.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_ELECTROCUTADO, rival.getEfecto());
+        assertEquals(180, rival.getTicksEfecto());
+    }
+
+    @Test
+    void tornadoDeberiaLanzarAlRivalAlAireEInconsciente() throws DOPOSoccerExcepcion {
+        golpear(new Nigeria(), Porteria.DERECHA);
+        assertEquals(60, rival.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_INCONSCIENTE, rival.getEfecto());
+        assertTrue(rival.getVy() < 0, "sale disparado hacia arriba");
+    }
+
+    @Test
+    void ilusionDeberiaConfundirAlRival() throws DOPOSoccerExcepcion {
+        golpear(new EstadosUnidos(), Porteria.IZQUIERDA);
+        assertEquals(70, rival.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_CONFUNDIDO, rival.getEfecto());
+        assertEquals(150, rival.getTicksEfecto());
+    }
+
+    @Test
+    void elDañoDelPoderDeberiaCrecerConElKickDelAtacante() throws DOPOSoccerExcepcion {
+        // Ejemplo del enunciado: Camerún con Kick 5 le hace 60 x 1,4 = 84 a un rival con Survival 3.
+        armar(new Camerun(), Porteria.IZQUIERDA);
+        atacante.setKick(5);
+        rival.setSurvival(3);
+        rival.prepararPartido(new Nigeria());
+        atacante.getPersonaje().getPoder().golpear(partido, atacante, rival);
+        assertEquals(120 - 84, rival.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_ELECTROCUTADO, rival.getEfecto());
+    }
+
+    @Test
+    void siElDañoLeQuitaTodaLaVidaDeberiaQuedarAturdidoSinElEfecto() throws DOPOSoccerExcepcion {
+        armar(new Camerun(), Porteria.IZQUIERDA);
+        rival.recibirDaño(50);   // le quedan 50 y el rayo hace 60
+        atacante.getPersonaje().getPoder().golpear(partido, atacante, rival);
+        assertTrue(rival.estaAturdido());
+        assertEquals(0, rival.getVida(), 0.001);
+        assertEquals(Jugador.EFECTO_NINGUNO, rival.getEfecto());
+    }
+
+    @Test
+    void soloElTornadoDeberiaSalirDelPie() {
+        assertTrue(new Tornado().saleDelPie());
+        assertFalse(new AuraAzul().saleDelPie());
+        assertFalse(new Rayo().saleDelPie());
+        assertFalse(new Ilusion().saleDelPie());
     }
 }

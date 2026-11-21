@@ -1,8 +1,9 @@
 package domain;
 
 /**
- * Poder de Camerún: un balón cubierto de electricidad que sale recto. Al golpear
- * al rival lo electrocutaría (versión posterior).
+ * Poder de Camerún: un balón cubierto de electricidad que sale recto. Si golpea
+ * al rival, lo electrocuta: durante 3 segundos no puede saltar y camina a la mitad
+ * de la velocidad.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
@@ -19,5 +20,10 @@ public class Rayo extends Poder {
         Balon balon = partido.getBalon();
         balon.impulsar(atacante.getDireccionAtaque() * 22, 0);
         balon.setEfecto(getCodigo(), 120);
+    }
+
+    @Override
+    protected void efectoSobreRival(Partido partido, Jugador atacante, Jugador rival) {
+        rival.aplicarEfecto(Jugador.EFECTO_ELECTROCUTADO, getDuracionTicks());
     }
 }

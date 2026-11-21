@@ -3,6 +3,7 @@ package presentation;
 import domain.Cancha;
 import domain.Configuracion;
 import domain.Juego;
+import domain.Jugador;
 import domain.Partido;
 import exceptions.DOPOSoccerExcepcion;
 import util.RegistroErrores;
@@ -25,6 +26,7 @@ public class VentanaPrincipal extends JFrame {
     private static final String PERSONAJES = "personajes";
     private static final String CONFIG_PARTIDO = "configPartido";
     private static final String CONFIGURACION = "configuracion";
+    private static final String MEJORAS = "mejoras";
     private static final String PARTIDO = "partido";
 
     private final Juego juego;
@@ -35,6 +37,7 @@ public class VentanaPrincipal extends JFrame {
     private final PantallaBase personajes;
     private final PantallaBase configPartido;
     private final PantallaBase configuracion;
+    private final PantallaBase mejoras;
     private final PantallaPartido pantallaPartido;
     private PantallaBase actual;
 
@@ -48,7 +51,7 @@ public class VentanaPrincipal extends JFrame {
      * Arma la ventana con todas sus pantallas y muestra la portada.
      */
     public VentanaPrincipal() {
-        super("Head Soccer · DOPOSoccer");
+        super("DOPO SOCCER");
         juego = new Juego();
         cartas = new CardLayout();
         contenedor = new JPanel(cartas);
@@ -58,6 +61,7 @@ public class VentanaPrincipal extends JFrame {
         personajes = new PantallaPersonajes(this);
         configPartido = new PantallaConfigPartido(this);
         configuracion = new PantallaConfiguracion(this);
+        mejoras = new PantallaMejoras(this);
         pantallaPartido = new PantallaPartido(this);
 
         contenedor.add(portada, PORTADA);
@@ -65,6 +69,7 @@ public class VentanaPrincipal extends JFrame {
         contenedor.add(personajes, PERSONAJES);
         contenedor.add(configPartido, CONFIG_PARTIDO);
         contenedor.add(configuracion, CONFIGURACION);
+        contenedor.add(mejoras, MEJORAS);
         contenedor.add(pantallaPartido, PARTIDO);
         setContentPane(contenedor);
 
@@ -115,6 +120,21 @@ public class VentanaPrincipal extends JFrame {
 
     void irAConfiguracion() {
         mostrar(configuracion, CONFIGURACION);
+    }
+
+    void irAMejoras() {
+        mostrar(mejoras, MEJORAS);
+    }
+
+    /**
+     * Compra una mejora de estadística para un jugador (gasta sus puntos).
+     */
+    void mejorarEstadistica(Jugador jugador, String estadistica) {
+        try {
+            jugador.mejorar(estadistica);
+        } catch (DOPOSoccerExcepcion e) {
+            avisar(e.getMessage());
+        }
     }
 
     void salir() {

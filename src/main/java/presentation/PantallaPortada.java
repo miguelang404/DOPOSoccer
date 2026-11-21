@@ -12,8 +12,16 @@ import java.awt.*;
  */
 class PantallaPortada extends PantallaBase {
 
+    private boolean confirmandoSalida;
+
     PantallaPortada(VentanaPrincipal ventana) {
         super(ventana, true);
+    }
+
+    @Override
+    void activar() {
+        confirmandoSalida = false;
+        super.activar();
     }
 
     @Override
@@ -29,17 +37,22 @@ class PantallaPortada extends PantallaBase {
 
         // Título
         double flota = Math.sin(t * 0.06) * 4;
-        Estilo.textoContorno(g, "HEAD", Estilo.fuente(104), 500, 128 + flota,
+        Estilo.textoContorno(g, "DOPO", Estilo.fuente(104), 500, 138 + flota,
                 Estilo.AMARILLO, Estilo.NARANJA, new Color(0x4A, 0x20, 0x00), 7f);
-        Estilo.textoContorno(g, "SOCCER", Estilo.fuente(104), 500, 226 + flota,
+        Estilo.textoContorno(g, "SOCCER", Estilo.fuente(104), 500, 236 + flota,
                 new Color(0x9B, 0xE7, 0xFF), Estilo.AZUL, new Color(0x06, 0x1A, 0x55), 7f);
-        texto(g, "DOPOSoccer  ·  Versión 1", 18, 500, 266, new Color(0xD8, 0xE6, 0xFF));
 
-        boton(g, "JUGAR", Estilo.VERDE, 350, 292, 300, 62, true, ventana::irAModalidad);
-        boton(g, "CONFIGURACIÓN", Estilo.AZUL, 350, 363, 300, 62, true, ventana::irAConfiguracion);
-        boton(g, "SALIR", Estilo.ROJO, 350, 434, 300, 62, true, ventana::salir);
+        boolean libre = !confirmandoSalida;
+        boton(g, "JUGAR", Estilo.VERDE, 350, 292, 300, 62, libre, ventana::irAModalidad);
+        boton(g, "CONFIGURACIÓN", Estilo.AZUL, 350, 363, 300, 62, libre, ventana::irAConfiguracion);
+        boton(g, "SALIR", Estilo.ROJO, 350, 434, 300, 62, libre, () -> confirmandoSalida = true);
 
         texto(g, "Escuela Colombiana de Ingeniería Julio Garavito  ·  DOPO 2026-2", 15, 500, 538,
                 new Color(255, 255, 255, 200));
+
+        if (confirmandoSalida) {
+            confirmacion(g, "¿SEGURO QUE QUIERES SALIR?", "Se cerrará el juego.", "SÍ, SALIR", "NO, SEGUIR",
+                    ventana::salir, () -> confirmandoSalida = false);
+        }
     }
 }

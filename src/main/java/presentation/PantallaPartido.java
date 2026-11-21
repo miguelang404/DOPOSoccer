@@ -294,6 +294,8 @@ class PantallaPartido extends PantallaBase {
         boolean alterno = j1.getPersonaje().getCodigo().equals(j2.getPersonaje().getCodigo());
         dibujarJugador(g, j1, false, f);
         dibujarJugador(g, j2, alterno, f);
+        dibujarEstado(g, j1, f);
+        dibujarEstado(g, j2, f);
         DibujoBalon.dibujar(g, balon.getX(), balon.getY(), Balon.RADIO, balon.getGiro(), balon.getEfecto(),
                 balon.getVx(), balon.getVy(), f);
 
@@ -331,6 +333,73 @@ class PantallaPartido extends PantallaBase {
         String aura = j.isPoderActivo() ? j.getPersonaje().getPoder().getCodigo() : "";
         DibujoPersonaje.dibujar(g, j.getX(), j.getY(), Cancha.SUELO, j.getPersonaje().getCodigo(), alterno,
                 j.getMirando(), j.getProgresoPatada(), aura, f);
+    }
+
+    /**
+     * Dibuja lo que le está pasando al jugador: aturdido o inconsciente (estrellitas), electrocutado
+     * (rayitos), empujado (líneas de velocidad) o confundido (signo de pregunta).
+     */
+    private void dibujarEstado(Graphics2D g, Jugador j, double f) {
+        double cx = j.getX();
+        double cy = j.getY();
+        String efecto = j.getEfecto();
+        Stroke original = g.getStroke();
+        if (j.estaAturdido() || Jugador.EFECTO_INCONSCIENTE.equals(efecto)) {
+            Color c = j.estaAturdido() ? new Color(0xFF, 0xF0, 0x9A) : Estilo.AMARILLO;
+            for (int i = 0; i < 3; i++) {
+                double a = f * 0.12 + i * 2 * Math.PI / 3;
+                estrella(g, cx + Math.cos(a) * 36, cy - Jugador.RADIO_CABEZA - 12 + Math.sin(a) * 8, 8, c);
+            }
+        } else if (Jugador.EFECTO_ELECTROCUTADO.equals(efecto)) {
+            g.setColor(Estilo.AMARILLO);
+            g.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            double giro = Math.floor(f / 4) * 0.9;
+            for (int k = 0; k < 6; k++) {
+                double a = giro + k * Math.PI / 3;
+                double sx = cx + Math.cos(a) * 40;
+                double sy = cy + 10 + Math.sin(a) * 44;
+                java.awt.geom.Path2D rayo = new java.awt.geom.Path2D.Double();
+                rayo.moveTo(sx, sy);
+                rayo.lineTo(sx + 6, sy + 8);
+                rayo.lineTo(sx - 4, sy + 14);
+                rayo.lineTo(sx + 5, sy + 23);
+                g.draw(rayo);
+            }
+        } else if (Jugador.EFECTO_EMPUJADO.equals(efecto)) {
+            g.setColor(new Color(0x9B, 0xE7, 0xFF, 190));
+            g.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            double atras = j.getDireccionAtaque();   // la estela queda del lado contrario al empuje
+            for (int k = 0; k < 3; k++) {
+                double ly = cy - 18 + k * 22;
+                double inicio = cx + atras * (38 + k * 4);
+                g.draw(new java.awt.geom.Line2D.Double(inicio, ly, inicio + atras * (34 + (k % 2) * 14), ly));
+            }
+        } else if (Jugador.EFECTO_CONFUNDIDO.equals(efecto)) {
+            Estilo.textoContorno(g, "?", Estilo.fuente(34), cx + Math.sin(f * 0.1) * 7, cy - Jugador.RADIO_CABEZA - 10,
+                    new Color(0xE0, 0xC8, 0xFF), Estilo.MORADO, new Color(0x2A, 0x10, 0x5A), 3f);
+        }
+        g.setStroke(original);
+    }
+
+    private void estrella(Graphics2D g, double x, double y, double radio, Color color) {
+        java.awt.geom.Path2D forma = new java.awt.geom.Path2D.Double();
+        for (int i = 0; i < 10; i++) {
+            double r = i % 2 == 0 ? radio : radio * 0.45;
+            double a = -Math.PI / 2 + i * Math.PI / 5;
+            double px = x + Math.cos(a) * r;
+            double py = y + Math.sin(a) * r;
+            if (i == 0) {
+                forma.moveTo(px, py);
+            } else {
+                forma.lineTo(px, py);
+            }
+        }
+        forma.closePath();
+        g.setColor(color);
+        g.fill(forma);
+        g.setColor(new Color(0x7A, 0x5A, 0x00));
+        g.setStroke(new BasicStroke(1.5f));
+        g.draw(forma);
     }
 
     private void dibujarConfeti(Graphics2D g) {
@@ -396,32 +465,21 @@ class PantallaPartido extends PantallaBase {
         g.draw(new RoundRectangle2D.Double(xBandera, 12, wBandera, hBandera, 4, 4));
 
         double xBarra = derecha ? xBandera - 12 - wBarra : xBandera + wBandera + 12;
-        double yBarra = 24;
-        double hBarra = 20;
+
+        // Vida (arriba): verde, pasa a amarillo y a rojo cuando queda poca
+        double proporcionVida = Math.max(0, Math.min(1, j.getVida() / j.getVidaMaxima()));
+        Color colorVida = proporcionVida > 0.5 ? Estilo.VERDE : (proporcionVida > 0.25 ? Estilo.AMARILLO : Estilo.ROJO);
+        String textoVida = j.estaAturdido() ? "ATURDIDO" : "VIDA " + Math.round(j.getVida()) + " / " + Math.round(j.getVidaMaxima());
+        barra(g, xBarra, 9, wBarra, 17, proporcionVida, colorVida, Estilo.mezclar(colorVida, -0.3), derecha, textoVida, 12);
+
+        // Poder (abajo)
         boolean listo = j.getPoder() >= Jugador.PODER_MAXIMO && !j.isPoderActivo();
-        // marco
-        g.setColor(new Color(0, 0, 0, 120));
-        g.fill(new RoundRectangle2D.Double(xBarra - 3, yBarra - 3, wBarra + 6, hBarra + 6, 20, 20));
-        g.setColor(new Color(0x14, 0x1C, 0x38));
-        g.fill(new RoundRectangle2D.Double(xBarra, yBarra, wBarra, hBarra, 16, 16));
         double proporcion = Math.max(0, Math.min(1, j.getPoder() / Jugador.PODER_MAXIMO));
-        if (proporcion > 0) {
-            double relleno = Math.max(hBarra, wBarra * proporcion);
-            double xr = derecha ? xBarra + wBarra - relleno : xBarra;
-            Color c1 = listo ? Estilo.AMARILLO : color;
-            Color c2 = listo ? Estilo.NARANJA : Estilo.mezclar(color, -0.25);
-            if (listo) {
-                double pulso = 0.5 + 0.5 * Math.sin(f * 0.25);
-                c1 = Estilo.mezclar(c1, 0.2 * pulso);
-            }
-            g.setPaint(new java.awt.GradientPaint(0, (float) yBarra, c1, 0, (float) (yBarra + hBarra), c2));
-            g.fill(new RoundRectangle2D.Double(xr, yBarra, relleno, hBarra, 16, 16));
-            g.setColor(new Color(255, 255, 255, 90));
-            g.fill(new RoundRectangle2D.Double(xr + 4, yBarra + 2, relleno - 8, hBarra * 0.35, 8, 8));
+        Color c1 = listo ? Estilo.AMARILLO : color;
+        Color c2 = listo ? Estilo.NARANJA : Estilo.mezclar(color, -0.25);
+        if (listo) {
+            c1 = Estilo.mezclar(c1, 0.2 * (0.5 + 0.5 * Math.sin(f * 0.25)));
         }
-        g.setColor(Color.WHITE);
-        g.setStroke(new BasicStroke(2f));
-        g.draw(new RoundRectangle2D.Double(xBarra, yBarra, wBarra, hBarra, 16, 16));
         String etiqueta;
         if (j.isPoderActivo()) {
             etiqueta = "¡PODER ACTIVO!";
@@ -430,9 +488,33 @@ class PantallaPartido extends PantallaBase {
         } else {
             etiqueta = "PODER " + (int) (proporcion * 100) + "%";
         }
-        Estilo.textoCentrado(g, etiqueta, Estilo.fuente(13), xBarra + wBarra / 2, yBarra + hBarra - 5, Color.WHITE);
-        Estilo.textoCentrado(g, j.getPersonaje().getPais(), Estilo.fuenteTexto(14), xBarra + wBarra / 2, yBarra + hBarra + 18,
+        barra(g, xBarra, 31, wBarra, 19, proporcion, c1, c2, derecha, etiqueta, 13);
+
+        Estilo.textoCentrado(g, j.getPersonaje().getPais(), Estilo.fuenteTexto(14), xBarra + wBarra / 2, 68,
                 new Color(255, 255, 255, 230));
+    }
+
+    /**
+     * Una barra con marco, relleno de degradado y una etiqueta centrada (la usan la vida y el poder).
+     */
+    private void barra(Graphics2D g, double x, double y, double w, double h, double proporcion, Color c1, Color c2,
+                       boolean derecha, String etiqueta, float tamEtiqueta) {
+        g.setColor(new Color(0, 0, 0, 120));
+        g.fill(new RoundRectangle2D.Double(x - 3, y - 3, w + 6, h + 6, h + 6, h + 6));
+        g.setColor(new Color(0x14, 0x1C, 0x38));
+        g.fill(new RoundRectangle2D.Double(x, y, w, h, h, h));
+        if (proporcion > 0) {
+            double relleno = Math.max(h, w * proporcion);
+            double xr = derecha ? x + w - relleno : x;
+            g.setPaint(new java.awt.GradientPaint(0, (float) y, c1, 0, (float) (y + h), c2));
+            g.fill(new RoundRectangle2D.Double(xr, y, relleno, h, h, h));
+            g.setColor(new Color(255, 255, 255, 90));
+            g.fill(new RoundRectangle2D.Double(xr + 4, y + 2, Math.max(1, relleno - 8), h * 0.35, 8, 8));
+        }
+        g.setColor(Color.WHITE);
+        g.setStroke(new BasicStroke(2f));
+        g.draw(new RoundRectangle2D.Double(x, y, w, h, h, h));
+        Estilo.textoCentrado(g, etiqueta, Estilo.fuente(tamEtiqueta), x + w / 2, y + h - 4.5, Color.WHITE);
     }
 
     // mensajes grandes
@@ -499,8 +581,9 @@ class PantallaPartido extends PantallaBase {
         Estilo.textoContorno(g, partido.getMarcador().getGoles(j1) + " - " + partido.getMarcador().getGoles(j2),
                 Estilo.fuente(64), 500, 330, Color.WHITE, Estilo.AZUL_CLARO, Estilo.AZUL_NOCHE, 5f);
 
-        boton(g, "REVANCHA", Estilo.VERDE, 240, 392, 240, 56, true, ventana::iniciarPartido);
-        boton(g, "MENÚ", Estilo.AZUL, 520, 392, 240, 56, true, ventana::irAPortada);
+        boton(g, "REVANCHA", Estilo.VERDE, 210, 392, 180, 54, true, ventana::iniciarPartido);
+        boton(g, "MEJORAS", Estilo.NARANJA, 410, 392, 180, 54, true, ventana::irAMejoras);
+        boton(g, "MENÚ", Estilo.AZUL, 610, 392, 180, 54, true, ventana::irAPortada);
     }
 
     private void columnaResultado(Graphics2D g, Jugador j, double cx, Color color, boolean gano, double f) {

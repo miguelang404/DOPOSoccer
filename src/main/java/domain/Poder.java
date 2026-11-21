@@ -8,8 +8,11 @@ package domain;
  * Para agregar un poder nuevo basta con crear una subclase de esta clase y
  * dársela a un personaje; el resto del juego no se toca.
  *
+ * El tiro tiene dos momentos: aplicar (sale el balón) y golpear (el balón alcanza
+ * al rival, que recibe el daño y el efecto propio de cada poder).
+ *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 public abstract class Poder {
 
@@ -44,8 +47,40 @@ public abstract class Poder {
     public abstract void aplicar(Partido partido, Jugador atacante);
 
     /**
-     * Daño que haría el tiro si golpeara al rival: DañoTiro x multiplicadorKick.
-     * (El daño todavía no se aplica en esta versión; queda calculado para la siguiente.)
+     * Qué le pasa al rival cuando el tiro lo golpea (aparte del daño): cada poder
+     * le deja un efecto distinto.
+     *
+     * @param partido  el partido en juego
+     * @param atacante quien disparó
+     * @param rival    el jugador golpeado
+     */
+    protected abstract void efectoSobreRival(Partido partido, Jugador atacante, Jugador rival);
+
+    /**
+     * El tiro golpea al rival: le hace el daño del poder y, si no quedó aturdido,
+     * le deja el efecto. Si el tiro entra al arco sin tocar al rival, este método
+     * nunca se llama y por eso no hay daño ni efecto.
+     *
+     * @param partido  el partido en juego
+     * @param atacante quien disparó
+     * @param rival    el jugador golpeado
+     */
+    public void golpear(Partido partido, Jugador atacante, Jugador rival) {
+        rival.recibirDaño(calcularDaño(atacante));
+        if (!rival.estaAturdido()) {
+            efectoSobreRival(partido, atacante, rival);
+        }
+    }
+
+    /**
+     * @return true si el balón de este poder se carga delante del pie en vez de delante de la frente
+     */
+    public boolean saleDelPie() {
+        return false;
+    }
+
+    /**
+     * Daño que hace el tiro cuando golpea al rival: DañoTiro x multiplicadorKick.
      *
      * @param atacante quien dispara
      * @return el daño del tiro
@@ -72,5 +107,12 @@ public abstract class Poder {
 
     public double getDuracionEfecto() {
         return duracionEfecto;
+    }
+
+    /**
+     * @return lo que dura el efecto sobre el rival, en ticks (60 por segundo)
+     */
+    public int getDuracionTicks() {
+        return (int) Math.round(duracionEfecto * Partido.TICKS_POR_SEGUNDO);
     }
 }

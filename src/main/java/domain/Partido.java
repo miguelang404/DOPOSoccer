@@ -62,6 +62,7 @@ public class Partido {
     private int ticksAtasco;
     private Jugador jugadorCargando;
     private int ticksCargando;
+    private Jugador lanzadorPoder;
     private boolean muerteSubita;
     private boolean finalPendiente;
     private Jugador ultimoAnotador;
@@ -145,11 +146,12 @@ public class Partido {
         // Recomendación de la IA generativa para el orden de los contactos: se alterna quién revisa
         // primero según si el tick es par o impar, para que ningún jugador tenga ventaja cuando los dos
         // tocan el balón a la vez.
-        jugador1.mirarHacia(jugador2.getX());
-        jugador2.mirarHacia(jugador1.getX());
         jugador1.actualizar();
         jugador2.actualizar();
         separarJugadores();
+        // Las patadas que le llegan al rival le hacen daño.
+        jugador1.golpearConPie(jugador2);
+        jugador2.golpearConPie(jugador1);
 
         if (jugadorCargando != null) {
             cargarTiroDePoder();
@@ -169,6 +171,9 @@ public class Partido {
             boolean encima = porteriaIzquierda.rebotar(balon);
             encima = porteriaDerecha.rebotar(balon) || encima;
             evitarAtasco(encima);
+            if (balon.getEfecto().isEmpty()) {
+                lanzadorPoder = null;   // el tiro de poder ya se acabó
+            }
         }
 
         ticksJugados++;
@@ -188,29 +193,45 @@ public class Partido {
         if (!jugador.resolverContacto(balon)) {
             return;
         }
-        if (jugador.isPoderActivo() && jugadorCargando == null) {
+        if (lanzadorPoder != null && jugador != lanzadorPoder && !balon.getEfecto().isEmpty()) {
+            // Un tiro de poder alcanzó al rival: recibe el daño y el efecto de ese poder.
+            Jugador atacante = lanzadorPoder;
+            lanzadorPoder = null;
+            atacante.getPersonaje().getPoder().golpear(this, atacante, jugador);
+            balon.terminarEfecto();
+        } else if (jugador.isPoderActivo() && jugadorCargando == null) {
             // Con el poder activo, al tocar el balón no sale disparado de una vez:
-            // primero se pone delante de la frente del jugador y ahí se carga el tiro.
+            // primero se pone delante de la frente (o del pie, según el poder) y ahí se carga el tiro.
             jugadorCargando = jugador;
             ticksCargando = 0;
             balon.setVelocidad(0, 0);
             balon.setEfecto(jugador.getPersonaje().getPoder().getCodigo(), TICKS_CARGA_PODER + 5);
         } else {
             balon.terminarEfecto();   // chocar con un jugador acaba el poder
+            lanzadorPoder = null;
         }
     }
 
     /**
-     * Mientras se carga el tiro: el balón se acerca a la frente (delante de la cara) y, al terminar, sale lanzado.
+     * Mientras se carga el tiro: el balón se acerca a la frente (delante de la cara), o al pie en el
+     * caso del Tornado, y al terminar sale lanzado.
      */
     private void cargarTiroDePoder() {
         // Recomendación de la IA generativa para la carga del tiro de poder: en vez de teletransportar
         // el balón, cada tick se acerca un 30 % de la distancia que le falta a la frente del jugador.
         // Así se ve como un deslizamiento suave y no un salto.
         Jugador j = jugadorCargando;
-        // Delante de la cara, a la altura de la frente (un poco arriba del centro de la cabeza)
-        double objetivoX = j.getX() + j.getMirando() * (Jugador.RADIO_CABEZA + Balon.RADIO + 4);
-        double objetivoY = j.getY() - 8;
+        double objetivoX;
+        double objetivoY;
+        if (j.getPersonaje().getPoder().saleDelPie()) {
+            // Delante del pie, pegado al suelo (el Tornado corre a ras de piso)
+            objetivoX = j.getX() + j.getMirando() * (9 + Jugador.RADIO_PIE + Balon.RADIO + 3);
+            objetivoY = Cancha.SUELO - Balon.RADIO;
+        } else {
+            // Delante de la cara, a la altura de la frente (un poco arriba del centro de la cabeza)
+            objetivoX = j.getX() + j.getMirando() * (Jugador.RADIO_CABEZA + Balon.RADIO + 4);
+            objetivoY = j.getY() - 8;
+        }
         balon.setPosicion(balon.getX() + (objetivoX - balon.getX()) * 0.3,
                 balon.getY() + (objetivoY - balon.getY()) * 0.3);
         balon.setVelocidad(0, 0);
@@ -218,6 +239,7 @@ public class Partido {
         if (ticksCargando >= TICKS_CARGA_PODER) {
             balon.setPosicion(objetivoX, objetivoY);
             jugadorCargando = null;
+            lanzadorPoder = j;
             j.usarPoder(this);
         }
     }
@@ -258,6 +280,18 @@ public class Partido {
         }
     }
 
+    /**
+     * Hace que los balones falsos duren al menos los ticks dados (los usa el poder Ilusión
+     * cuando alcanza al rival).
+     *
+     * @param ticks cuántos ticks más se quedan
+     */
+    public void prolongarSeñuelos(int ticks) {
+        if (!señuelos.isEmpty()) {
+            ticksSeñuelos = Math.max(ticksSeñuelos, ticks);
+        }
+    }
+
     private void moverSeñuelos() {
         if (!señuelos.isEmpty()) {
             for (Balon falso : señuelos) {
@@ -284,7 +318,8 @@ public class Partido {
      * @param porteria el arco donde entró el balón
      */
     public void registrarGol(Porteria porteria) {
-        balon.terminarEfecto();   // el poder se acaba al entrar en el arco
+        balon.terminarEfecto();   // el poder se acaba al entrar en el arco (sin daño ni efecto)
+        lanzadorPoder = null;
         Jugador anotador = porteria == porteriaIzquierda ? jugador2 : jugador1;
         Jugador recibe = anotador == jugador1 ? jugador2 : jugador1;
         marcador.sumarGol(anotador);
@@ -342,6 +377,7 @@ public class Partido {
         ticksAtasco = 0;
         jugadorCargando = null;
         ticksCargando = 0;
+        lanzadorPoder = null;
     }
 
     // pausa y salida
@@ -434,6 +470,13 @@ public class Partido {
      */
     public Jugador getJugadorCargando() {
         return jugadorCargando;
+    }
+
+    /**
+     * @return quien disparó el tiro de poder que va en el aire (null si no hay ninguno)
+     */
+    public Jugador getLanzadorPoder() {
+        return lanzadorPoder;
     }
 
     public Jugador getUltimoAnotador() {
