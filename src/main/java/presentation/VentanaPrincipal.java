@@ -17,7 +17,7 @@ import java.awt.*;
  * otra. Todo lo que tiene que ver con las reglas se lo pide a {@link Juego}.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 public class VentanaPrincipal extends JFrame {
 
@@ -28,6 +28,10 @@ public class VentanaPrincipal extends JFrame {
     private static final String CONFIGURACION = "configuracion";
     private static final String MEJORAS = "mejoras";
     private static final String PARTIDO = "partido";
+    private static final String PERFIL = "perfil";
+    private static final java.nio.file.Path ARCHIVO_PROGRESO = java.nio.file.Paths.get("datos", "progreso.properties");
+    private static final java.io.File CARPETA_PARTIDAS = new java.io.File("partidas");
+    private static final String EXTENSION = "dop";
 
     private final Juego juego;
     private final CardLayout cartas;
@@ -38,6 +42,7 @@ public class VentanaPrincipal extends JFrame {
     private final PantallaBase configPartido;
     private final PantallaBase configuracion;
     private final PantallaBase mejoras;
+    private final PantallaBase perfil;
     private final PantallaPartido pantallaPartido;
     private PantallaBase actual;
 
@@ -53,6 +58,8 @@ public class VentanaPrincipal extends JFrame {
     public VentanaPrincipal() {
         super("DOPO SOCCER");
         juego = new Juego();
+        juego.cargarProgreso(ARCHIVO_PROGRESO);
+        Sonidos.setActivo(juego.getConfiguracion().isSonidoActivo());
         cartas = new CardLayout();
         contenedor = new JPanel(cartas);
 
@@ -62,6 +69,7 @@ public class VentanaPrincipal extends JFrame {
         configPartido = new PantallaConfigPartido(this);
         configuracion = new PantallaConfiguracion(this);
         mejoras = new PantallaMejoras(this);
+        perfil = new PantallaPerfil(this);
         pantallaPartido = new PantallaPartido(this);
 
         contenedor.add(portada, PORTADA);
@@ -70,6 +78,7 @@ public class VentanaPrincipal extends JFrame {
         contenedor.add(configPartido, CONFIG_PARTIDO);
         contenedor.add(configuracion, CONFIGURACION);
         contenedor.add(mejoras, MEJORAS);
+        contenedor.add(perfil, PERFIL);
         contenedor.add(pantallaPartido, PARTIDO);
         setContentPane(contenedor);
 
@@ -106,11 +115,48 @@ public class VentanaPrincipal extends JFrame {
     }
 
     void irAPersonajes() {
+        mostrar(personajes, PERSONAJES);
+    }
+
+    void irAPerfiles() {
+        mostrar(perfil, PERFIL);
+    }
+
+    /** Modalidad dos jugadores: se pasa directo a escoger personajes. */
+    void elegirContraJugador() {
         try {
             juego.seleccionarModalidad(Juego.JUGADOR_VS_JUGADOR);
-            mostrar(personajes, PERSONAJES);
+            irAPersonajes();
         } catch (DOPOSoccerExcepcion e) {
             avisar(e.getMessage());
+        }
+    }
+
+    /** Modalidad contra la máquina: primero se escoge el perfil. */
+    void elegirContraMaquina() {
+        try {
+            juego.seleccionarModalidad(Juego.JUGADOR_VS_MAQUINA);
+            irAPerfiles();
+        } catch (DOPOSoccerExcepcion e) {
+            avisar(e.getMessage());
+        }
+    }
+
+    void elegirPerfil(String nombre) {
+        try {
+            juego.seleccionarPerfil(nombre);
+            irAPersonajes();
+        } catch (DOPOSoccerExcepcion e) {
+            avisar(e.getMessage());
+        }
+    }
+
+    /** El botón volver de personajes regresa a perfiles si se juega contra la máquina. */
+    void volverDePersonajes() {
+        if (Juego.JUGADOR_VS_MAQUINA.equals(juego.getModalidad())) {
+            irAPerfiles();
+        } else {
+            irAModalidad();
         }
     }
 
@@ -132,6 +178,65 @@ public class VentanaPrincipal extends JFrame {
     void mejorarEstadistica(Jugador jugador, String estadistica) {
         try {
             jugador.mejorar(estadistica);
+            guardarProgreso();
+        } catch (DOPOSoccerExcepcion e) {
+            avisar(e.getMessage());
+        }
+    }
+
+    /** Guarda los puntos, las estadísticas y la configuración. Si falla solo avisa, no se cae el juego. */
+    void guardarProgreso() {
+        try {
+            juego.guardarProgreso(ARCHIVO_PROGRESO);
+        } catch (DOPOSoccerExcepcion e) {
+            avisar(e.getMessage());
+        }
+    }
+
+    private JFileChooser selector() {
+        JFileChooser selector = new JFileChooser(CARPETA_PARTIDAS.isDirectory() ? CARPETA_PARTIDAS
+                : new java.io.File("."));
+        selector.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Partidas de DOPOSoccer (*."
+                + EXTENSION + ")", EXTENSION));
+        return selector;
+    }
+
+    /**
+     * Pregunta dónde guardar y guarda el partido en juego.
+     *
+     * @return true si se guardó
+     */
+    boolean guardarPartida() {
+        JFileChooser selector = selector();
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return false;
+        }
+        java.io.File archivo = selector.getSelectedFile();
+        if (!archivo.getName().toLowerCase().endsWith("." + EXTENSION)) {
+            archivo = new java.io.File(archivo.getParentFile(), archivo.getName() + "." + EXTENSION);
+        }
+        try {
+            juego.guardarPartida(archivo);
+            guardarProgreso();
+            return true;
+        } catch (DOPOSoccerExcepcion e) {
+            avisar(e.getMessage());
+            return false;
+        }
+    }
+
+    /** Pregunta cuál partida abrir y la deja en pausa en la cancha. */
+    void abrirPartida() {
+        JFileChooser selector = selector();
+        if (selector.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        try {
+            Partido partido = juego.abrirPartida(selector.getSelectedFile());
+            resolucion = juego.getConfiguracion().getResolucion();
+            aplicarResolucion();
+            pantallaPartido.mostrarPartido(partido);
+            mostrar(pantallaPartido, PARTIDO);
         } catch (DOPOSoccerExcepcion e) {
             avisar(e.getMessage());
         }
@@ -232,6 +337,7 @@ public class VentanaPrincipal extends JFrame {
     private void guardarConfiguracion(boolean sonido, boolean musica, String idioma) {
         try {
             juego.configurar(sonido, musica, idioma);
+            guardarProgreso();
         } catch (DOPOSoccerExcepcion e) {
             avisar(e.getMessage());
         }

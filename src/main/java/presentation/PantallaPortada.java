@@ -8,7 +8,7 @@ import java.awt.*;
  * La portada: el título del juego, dos jugadores esperando y el menú principal.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 class PantallaPortada extends PantallaBase {
 
@@ -43,11 +43,12 @@ class PantallaPortada extends PantallaBase {
                 new Color(0x9B, 0xE7, 0xFF), Estilo.AZUL, new Color(0x06, 0x1A, 0x55), 7f);
 
         boolean libre = !confirmandoSalida;
-        boton(g, "JUGAR", Estilo.VERDE, 350, 292, 300, 62, libre, ventana::irAModalidad);
-        boton(g, "CONFIGURACIÓN", Estilo.AZUL, 350, 363, 300, 62, libre, ventana::irAConfiguracion);
-        boton(g, "SALIR", Estilo.ROJO, 350, 434, 300, 62, libre, () -> confirmandoSalida = true);
+        boton(g, "JUGAR", Estilo.VERDE, 350, 270, 300, 56, libre, ventana::irAModalidad);
+        boton(g, "ABRIR PARTIDA", Estilo.NARANJA, 350, 334, 300, 56, libre, ventana::abrirPartida);
+        boton(g, "CONFIGURACIÓN", Estilo.AZUL, 350, 398, 300, 56, libre, ventana::irAConfiguracion);
+        boton(g, "SALIR", Estilo.ROJO, 350, 462, 300, 56, libre, () -> confirmandoSalida = true);
 
-        texto(g, "Escuela Colombiana de Ingeniería Julio Garavito  ·  DOPO 2026-2", 15, 500, 538,
+        texto(g, "Escuela Colombiana de Ingeniería Julio Garavito  ·  DOPO 2026-2", 15, 500, 546,
                 new Color(255, 255, 255, 200));
 
         if (confirmandoSalida) {

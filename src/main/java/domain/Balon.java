@@ -1,5 +1,7 @@
 package domain;
 
+import java.io.Serializable;
+
 /**
  * El balón. Se mueve con gravedad, rebota en el piso, en el techo y en las
  * paredes, y va perdiendo fuerza poco a poco. No sabe nada de jugadores ni de
@@ -8,7 +10,9 @@ package domain;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public class Balon {
+public class Balon implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** Radio del balón (es un círculo). */
     public static final int RADIO = 16;

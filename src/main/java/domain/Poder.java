@@ -1,5 +1,7 @@
 package domain;
 
+import java.io.Serializable;
+
 /**
  * El tiro de poder de un personaje. Cada país tiene el suyo: lo único que cambia
  * es cómo sale el balón (método aplicar) y los datos de daño y duración que
@@ -14,7 +16,9 @@ package domain;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 2
  */
-public abstract class Poder {
+public abstract class Poder implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String nombre;
     private final String codigo;

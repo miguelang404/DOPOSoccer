@@ -5,6 +5,7 @@ import util.RegistroErrores;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
 /**
  * Un partido de DOPOSoccer. Aquí vive todo lo que pasa mientras se juega: la
@@ -17,7 +18,9 @@ import java.util.List;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public class Partido {
+public class Partido implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final String TIPO_TIEMPO = "TIEMPO";
     public static final String TIPO_GOLES = "GOLES";
@@ -63,6 +66,7 @@ public class Partido {
     private Jugador jugadorCargando;
     private int ticksCargando;
     private Jugador lanzadorPoder;
+    private Maquina maquina;
     private boolean muerteSubita;
     private boolean finalPendiente;
     private Jugador ultimoAnotador;
@@ -146,6 +150,9 @@ public class Partido {
         // Recomendación de la IA generativa para el orden de los contactos: se alterna quién revisa
         // primero según si el tick es par o impar, para que ningún jugador tenga ventaja cuando los dos
         // tocan el balón a la vez.
+        if (maquina != null) {
+            maquina.actuar(this, jugador2, jugador1);   // la máquina siempre controla al jugador 2
+        }
         jugador1.actualizar();
         jugador2.actualizar();
         separarJugadores();
@@ -470,6 +477,22 @@ public class Partido {
      */
     public Jugador getJugadorCargando() {
         return jugadorCargando;
+    }
+
+    /**
+     * Pone a una máquina a controlar al jugador 2 (jugador contra máquina).
+     *
+     * @param nueva la máquina, o null para que lo maneje una persona
+     */
+    public void setMaquina(Maquina nueva) {
+        this.maquina = nueva;
+    }
+
+    /**
+     * @return la máquina que controla al jugador 2 (null si es jugador contra jugador)
+     */
+    public Maquina getMaquina() {
+        return maquina;
     }
 
     /**

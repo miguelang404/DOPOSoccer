@@ -1,5 +1,6 @@
 package presentation;
 
+import domain.Juego;
 import domain.Personaje;
 
 import javax.swing.*;
@@ -15,7 +16,7 @@ import java.awt.geom.RoundRectangle2D;
  * A y D para el jugador 1, las flechas para el jugador 2.
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 class PantallaPersonajes extends PantallaBase {
 
@@ -29,7 +30,7 @@ class PantallaPersonajes extends PantallaBase {
         getActionMap().put("volver", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ventana.irAModalidad();
+                ventana.volverDePersonajes();
             }
         });
     }
@@ -49,10 +50,12 @@ class PantallaPersonajes extends PantallaBase {
     @Override
     protected void pintar(Graphics2D g, double t) {
         velo(g, 130);
-        botonVolver(g, ventana::irAModalidad);
+        botonVolver(g, ventana::volverDePersonajes);
         titulo(g, "ELIGE TU PERSONAJE", 78);
         panelJugador(g, 0, 40, Estilo.AZUL_CLARO, "JUGADOR 1", "A  /  D", t);
-        panelJugador(g, 1, 520, Estilo.ROJO, "JUGADOR 2", "←  /  →", t);
+        boolean maquina = Juego.JUGADOR_VS_MAQUINA.equals(ventana.getJuego().getModalidad());
+        String etiqueta2 = maquina ? "MÁQUINA · " + ventana.getJuego().getPerfilMaquina().toUpperCase() : "JUGADOR 2";
+        panelJugador(g, 1, 520, Estilo.ROJO, etiqueta2, maquina ? "" : "←  /  →", t);
         boton(g, "MEJORAS", Estilo.NARANJA, 290, 498, 200, 50, true, ventana::irAMejoras);
         boton(g, "CONTINUAR", Estilo.VERDE, 510, 498, 200, 50, true, ventana::irAConfigPartido);
     }
@@ -68,7 +71,9 @@ class PantallaPersonajes extends PantallaBase {
         double cx = x + w / 2;
 
         Estilo.textoCentrado(g, titulo, Estilo.fuente(24), cx, y + 34, color);
-        texto(g, "Teclas: " + teclas, 14, cx, y + 54, new Color(0xBF, 0xD6, 0xFF));
+        if (!teclas.isEmpty()) {
+            texto(g, "Teclas: " + teclas, 14, cx, y + 54, new Color(0xBF, 0xD6, 0xFF));
+        }
 
         // Vitrina con el personaje en grande
         g.setPaint(new java.awt.RadialGradientPaint((float) cx, (float) (y + 150), 120f, new float[]{0f, 1f},

@@ -1,5 +1,7 @@
 package domain;
 
+import java.io.Serializable;
+
 /**
  * Un personaje de DOPOSoccer: representa a un país y trae su propio tiro de poder.
  * Las estadísticas (velocidad, salto, patada, vida) no viven aquí sino en el
@@ -11,7 +13,9 @@ package domain;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public abstract class Personaje {
+public abstract class Personaje implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String pais;
     private final String codigo;

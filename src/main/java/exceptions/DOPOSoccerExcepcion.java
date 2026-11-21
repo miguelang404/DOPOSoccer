@@ -7,7 +7,7 @@ package exceptions;
  * simple "NullPointerException".
  *
  * @author César Daniel Morales Sandoval y Miguel de la Peña
- * @version Versión 1
+ * @version Versión 2
  */
 public class DOPOSoccerExcepcion extends Exception {
 
@@ -26,7 +26,7 @@ public class DOPOSoccerExcepcion extends Exception {
     public static final String IDIOMA_INVALIDO =
             "Ese idioma todavía no está disponible. Por ahora puedes usar Español o Inglés.";
     public static final String MODALIDAD_NO_DISPONIBLE =
-            "Jugador vs máquina todavía no está disponible. Llegará en la versión dos.";
+            "Esa modalidad no existe. Usa jugador contra jugador o jugador contra máquina.";
     public static final String ESTADISTICA_INVALIDA =
             "Las estadísticas de un jugador deben estar entre 1 y 10.";
     public static final String JUGADORES_VACIOS =
@@ -37,6 +37,16 @@ public class DOPOSoccerExcepcion extends Exception {
             "Esa estadística ya está en su máximo (10).";
     public static final String ESTADISTICA_DESCONOCIDA =
             "Esa estadística no existe. Usa velocidad, salto, patada o vida.";
+    public static final String PERFIL_INVALIDO =
+            "Ese perfil de máquina no existe. Usa Torpe, Ofensiva, Defensiva o Experta.";
+    public static final String SIN_PERFIL =
+            "Elige el perfil de la máquina antes de empezar el partido.";
+    public static final String SIN_PARTIDO_PARA_GUARDAR =
+            "No hay un partido en juego para guardar.";
+    public static final String NO_SE_PUDO_GUARDAR =
+            "No se pudo guardar el archivo. Revisa que la carpeta exista y que puedas escribir en ella.";
+    public static final String NO_SE_PUDO_ABRIR =
+            "No se pudo abrir la partida. El archivo no existe, está dañado o no es una partida de DOPOSoccer.";
 
     /**
      * Crea la excepción con el mensaje que se le mostrará al usuario.
@@ -45,5 +55,15 @@ public class DOPOSoccerExcepcion extends Exception {
      */
     public DOPOSoccerExcepcion(String mensaje) {
         super(mensaje);
+    }
+
+    /**
+     * Crea la excepción guardando también el error técnico que la causó (para el log).
+     *
+     * @param mensaje explicación del problema
+     * @param causa   el error original
+     */
+    public DOPOSoccerExcepcion(String mensaje, Throwable causa) {
+        super(mensaje, causa);
     }
 }

@@ -2,6 +2,7 @@ package domain;
 
 import exceptions.DOPOSoccerExcepcion;
 import util.RegistroErrores;
+import java.io.Serializable;
 /**
  * La cancha donde se juega. Toda la física del juego ocurre en un campo "lógico"
  * de 1000 x 560 unidades; la resolución (pequeña, mediana o grande) solo cambia
@@ -10,7 +11,9 @@ import util.RegistroErrores;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public class Cancha {
+public class Cancha implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** Ancho del campo lógico. */
     public static final int ANCHO = 1000;

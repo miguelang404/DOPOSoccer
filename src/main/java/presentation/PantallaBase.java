@@ -177,7 +177,7 @@ abstract class PantallaBase extends JPanel {
      * Título grande de la pantalla, con borde y degradado.
      */
     protected void titulo(Graphics2D g, String texto, double y) {
-        Estilo.textoContorno(g, texto, Estilo.fuente(54), Cancha.ANCHO / 2.0, y,
+        Estilo.textoContorno(g, texto, Estilo.ajustar(g, Estilo.fuente(54), texto, 640), Cancha.ANCHO / 2.0, y,
                 Estilo.AMARILLO, Estilo.NARANJA, new Color(0x5A, 0x2A, 0x00), 5f);
     }
 

@@ -1,5 +1,7 @@
 package domain;
 
+import java.io.Serializable;
+
 /**
  * El marcador del partido: lleva la cuenta de los goles de cada jugador y sabe
  * quién va ganando.
@@ -7,7 +9,9 @@ package domain;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public class Marcador {
+public class Marcador implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final Jugador jugador1;
     private final Jugador jugador2;

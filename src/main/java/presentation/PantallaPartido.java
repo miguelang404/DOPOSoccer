@@ -71,6 +71,8 @@ class PantallaPartido extends PantallaBase {
     private double vyPrevia;
     private boolean poderPresionado1;
     private boolean poderPresionado2;
+    private boolean confirmandoSalida;
+    private String avisoPausa = "";
 
     PantallaPartido(VentanaPrincipal ventana) {
         super(ventana, true);
@@ -100,6 +102,8 @@ class PantallaPartido extends PantallaBase {
     void mostrarPartido(Partido nuevo) {
         partido = nuevo;
         teclas.clear();
+        confirmandoSalida = false;
+        avisoPausa = "";
         confeti.clear();
         ticksEnCurso = 0;
         estadoPrevio = "";
@@ -131,6 +135,8 @@ class PantallaPartido extends PantallaBase {
         if (partido == null) {
             return;
         }
+        confirmandoSalida = false;
+        avisoPausa = "";
         if (Partido.ESTADO_PAUSADO.equals(partido.getEstado())) {
             partido.reanudar();
         } else {
@@ -165,22 +171,23 @@ class PantallaPartido extends PantallaBase {
         Jugador j2 = partido.getJugador2();
         if (Partido.ESTADO_EN_CURSO.equals(partido.getEstado())) {
             j1.mover((teclas.contains(P1_DERECHA) ? 1 : 0) - (teclas.contains(P1_IZQUIERDA) ? 1 : 0));
-            j2.mover((teclas.contains(P2_DERECHA) ? 1 : 0) - (teclas.contains(P2_IZQUIERDA) ? 1 : 0));
+            boolean humano2 = partido.getMaquina() == null;
+            j2.mover(!humano2 ? 0 : (teclas.contains(P2_DERECHA) ? 1 : 0) - (teclas.contains(P2_IZQUIERDA) ? 1 : 0));
             if (teclas.contains(P1_SALTO)) {
                 j1.saltar();
             }
-            if (teclas.contains(P2_SALTO)) {
+            if (humano2 && teclas.contains(P2_SALTO)) {
                 j2.saltar();
             }
             if (teclas.contains(P1_PATADA)) {
                 j1.patear();
             }
-            if (teclas.contains(P2_PATADA)) {
+            if (humano2 && teclas.contains(P2_PATADA)) {
                 j2.patear();
             }
             // El poder se activa al apretar la tecla, no mientras se mantiene.
             boolean p1 = teclas.contains(P1_PODER);
-            boolean p2 = teclas.contains(P2_PODER);
+            boolean p2 = humano2 && teclas.contains(P2_PODER);
             if (p1 && !poderPresionado1) {
                 j1.activarPoder();
             }
@@ -227,6 +234,7 @@ class PantallaPartido extends PantallaBase {
             } else if (Partido.ESTADO_TERMINADO.equals(estado)) {
                 Sonidos.reproducir("silbato");
                 lanzarConfeti();
+                ventana.guardarProgreso();
             }
             if (Partido.ESTADO_EN_CURSO.equals(estado) && Partido.ESTADO_GOL.equals(estadoPrevio)) {
                 cuentaPrevia = 0;
@@ -307,7 +315,9 @@ class PantallaPartido extends PantallaBase {
 
         // Teclas de ayuda abajo
         texto(g, "J1:  A D mover · W saltar · F patear · G poder", 14, 250, 540, new Color(255, 255, 255, 190));
-        texto(g, "J2:  ← → mover · ↑ saltar · . patear · , poder", 14, 750, 540, new Color(255, 255, 255, 190));
+        String ayuda2 = partido.getMaquina() == null ? "J2:  ← → mover · ↑ saltar · . patear · , poder"
+                : "J2:  MÁQUINA (" + partido.getMaquina().getPerfil() + ")";
+        texto(g, ayuda2, 14, 750, 540, new Color(255, 255, 255, 190));
         texto(g, "ESC pausa", 13, 500, 540, new Color(255, 255, 255, 150));
 
         if (Partido.ESTADO_CUENTA.equals(estado)) {
@@ -555,14 +565,25 @@ class PantallaPartido extends PantallaBase {
 
     private void menuPausa(Graphics2D g) {
         velo(g, 150);
-        tarjeta(g, 300, 120, 400, 300, Estilo.AMARILLO, true);
-        Estilo.textoContorno(g, "PAUSA", Estilo.fuente(64), 500, 205, Estilo.AMARILLO, Estilo.NARANJA,
+        if (confirmandoSalida) {
+            confirmacion(g, "¿SALIR AL MENÚ?", "Se perderá el partido que no hayas guardado.", "SÍ, SALIR", "NO, SEGUIR",
+                    () -> {
+                        partido.abandonar();
+                        ventana.irAPortada();
+                    }, () -> confirmandoSalida = false);
+            return;
+        }
+        tarjeta(g, 300, 100, 400, 360, Estilo.AMARILLO, true);
+        Estilo.textoContorno(g, "PAUSA", Estilo.fuente(64), 500, 185, Estilo.AMARILLO, Estilo.NARANJA,
                 new Color(0x4A, 0x20, 0x00), 5f);
-        boton(g, "CONTINUAR", Estilo.VERDE, 350, 245, 300, 56, true, this::alternarPausa);
-        boton(g, "SALIR AL MENÚ", Estilo.ROJO, 350, 320, 300, 56, true, () -> {
-            partido.abandonar();
-            ventana.irAPortada();
+        boton(g, "CONTINUAR", Estilo.VERDE, 350, 215, 300, 56, true, this::alternarPausa);
+        boton(g, "GUARDAR PARTIDA", Estilo.AZUL, 350, 285, 300, 56, true, () -> {
+            avisoPausa = ventana.guardarPartida() ? "Partida guardada" : "";
         });
+        boton(g, "SALIR AL MENÚ", Estilo.ROJO, 350, 355, 300, 56, true, () -> confirmandoSalida = true);
+        if (!avisoPausa.isEmpty()) {
+            texto(g, avisoPausa, 16, 500, 440, Estilo.AMARILLO);
+        }
     }
 
     private void resultadoFinal(Graphics2D g, double f) {
@@ -583,7 +604,7 @@ class PantallaPartido extends PantallaBase {
 
         boton(g, "REVANCHA", Estilo.VERDE, 210, 392, 180, 54, true, ventana::iniciarPartido);
         boton(g, "MEJORAS", Estilo.NARANJA, 410, 392, 180, 54, true, ventana::irAMejoras);
-        boton(g, "MENÚ", Estilo.AZUL, 610, 392, 180, 54, true, ventana::irAPortada);
+        boton(g, "PERSONAJES", Estilo.AZUL, 610, 392, 180, 54, true, ventana::irAPersonajes);
     }
 
     private void columnaResultado(Graphics2D g, Jugador j, double cx, Color color, boolean gano, double f) {

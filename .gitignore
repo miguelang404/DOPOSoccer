@@ -27,3 +27,7 @@ Desktop.ini
 
 # Sistema macOS
 .DS_Store
+
+# Datos del jugador (progreso y partidas guardadas)
+datos/
+partidas/

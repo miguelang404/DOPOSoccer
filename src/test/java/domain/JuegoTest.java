@@ -57,9 +57,8 @@ class JuegoTest {
     }
 
     @Test
-    void jugadorVsMaquinaTodaviaNoDeberiaEstarDisponible() {
-        DOPOSoccerExcepcion e = assertThrows(DOPOSoccerExcepcion.class,
-                () -> juego.seleccionarModalidad(Juego.JUGADOR_VS_MAQUINA));
+    void deberiaRechazarUnaModalidadQueNoExiste() {
+        DOPOSoccerExcepcion e = assertThrows(DOPOSoccerExcepcion.class, () -> juego.seleccionarModalidad("OTRA"));
         assertEquals(DOPOSoccerExcepcion.MODALIDAD_NO_DISPONIBLE, e.getMessage());
     }
 

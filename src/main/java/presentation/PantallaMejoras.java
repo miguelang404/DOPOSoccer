@@ -28,8 +28,6 @@ class PantallaMejoras extends PantallaBase {
         velo(g, 135);
         botonVolver(g, ventana::irAPersonajes);
         titulo(g, "MEJORAS", 78);
-        texto(g, "Ganas 100 puntos si ganas y 25 si pierdes. Cada mejora cuesta el doble de la anterior.", 15, 500, 104,
-                new Color(0xD8, 0xE6, 0xFF));
         panelJugador(g, ventana.getJuego().getJugador1(), 40, Estilo.AZUL_CLARO);
         panelJugador(g, ventana.getJuego().getJugador2(), 520, Estilo.ROJO);
         boton(g, "LISTO", Estilo.VERDE, 390, 498, 220, 50, true, ventana::irAPersonajes);

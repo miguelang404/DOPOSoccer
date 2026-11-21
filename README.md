@@ -2,7 +2,8 @@
 
 Hola. Este es nuestro proyecto de DOPO 2026-2: una versión de **Head Soccer**, ese juego de fútbol de cabezones, hecha
 en Java con Swing. Lo estamos construyendo entre los dos, por versiones. Empezó con la **Versión 1: Presentación +
-Dominio** y ya trae la vida, el daño, los efectos de los poderes y las mejoras de estadísticas.
+Dominio** y ya trae la **Versión 2**: vida, daño y efectos de los poderes, mejoras de estadísticas, jugar contra la
+máquina y guardar/abrir partidas.
 
 **Autores:** César Daniel Morales Sandoval y Miguel de la Peña **Curso:** Desarrollo Orientado por Objetos (DOPO),
 Escuela Colombiana de Ingeniería Julio Garavito, 2026-2
@@ -11,7 +12,7 @@ Escuela Colombiana de Ingeniería Julio Garavito, 2026-2
 
 ## ¿Qué se puede hacer?
 
-Se puede jugar un partido de **jugador contra jugador** en un mismo teclado, con el estilo del juego original: estadio
+Se puede jugar un partido de **jugador contra jugador** en un mismo teclado o de **jugador contra máquina**, con el estilo del juego original: estadio
 con público, arcos con red, cabezones sencillos y planos, sin expresiones, y el balón girando.
 
 - **Menús:** portada (con confirmación al salir), elección de modalidad, elección de personaje para cada jugador,
@@ -34,14 +35,20 @@ con público, arcos con red, cabezones sencillos y planos, sin expresiones, y el
 - **Puntos y mejoras:** el ganador se lleva 100 y el perdedor 25. Con esos puntos se sube Velocidad, Salto, Patada o
   Vida (de 1 a 10); la primera mejora de cada una cuesta 500 y cada siguiente cuesta el doble. Cada punto de mejora
   suma un 10 %. Los puntos y las mejoras se conservan de un partido a otro mientras el juego esté abierto.
+- **Jugador contra máquina:** la máquina maneja al jugador 2 con las mismas acciones que el teclado (mover, saltar,
+  patear y usar el poder). Se escoge su perfil: **Torpe** (todo al azar), **Ofensiva** (su prioridad es anotar),
+  **Defensiva** (su prioridad es defender su arco) o **Experta** (decide según el estado del partido: defiende si el
+  balón está en su zona, ataca si no, y usa el poder cuando conviene).
+- **Guardar y abrir partidas:** en la pausa, GUARDAR PARTIDA guarda todo el partido (marcador, tiempo, posiciones,
+  barras, vidas, efectos y la máquina) en un archivo `.dop`; en la portada, ABRIR PARTIDA lo recupera y queda en pausa.
+- **Progreso:** los puntos, las mejoras y la configuración se guardan solos en `datos/progreso.properties` y se cargan
+  al abrir el juego.
 - **Extras:** cuenta regresiva, celebración con confeti, pausa, revancha y tres tamaños de ventana.
 
 ## ¿Qué todavía no está?
 
 Lo dejamos para las próximas versiones, y preferimos decirlo claro:
 
-- Jugar contra la máquina (se ve en el menú, pero está bloqueado).
-- Guardar y abrir partidas, y guardar el progreso (puntos y mejoras) entre una sesión y otra.
 - La música y el idioma se guardan en la configuración, pero todavía no cambian nada en el juego.
 
 ## Cómo correrlo (requisitos)
@@ -84,10 +91,11 @@ jugador solo ve un mensaje amable.
 
 ## Pruebas
 
-Tenemos 115 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
-el partido, los poderes y la clase `Juego`, incluyendo la vida, el daño, los efectos, el aturdimiento y las mejoras, y los
-casos en los que algo debe fallar (minutos fuera de rango, un idioma que no existe, jugar contra la máquina antes de
-tiempo, mejorar sin puntos suficientes, etc.).
+Tenemos 130 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
+el partido, los poderes, las máquinas y la clase `Juego`, incluyendo la vida, el daño, los efectos, el aturdimiento y las mejoras, y los
+casos en los que algo debe fallar (minutos fuera de rango, un idioma que no existe, empezar contra la máquina sin perfil, abrir un archivo dañado,
+mejorar sin puntos suficientes, etc.). También se prueba cada perfil de máquina, guardar y abrir una partida y
+conservar el progreso.
 
 ## Uso de inteligencia artificial
 

@@ -1,6 +1,7 @@
 package domain;
 import exceptions.DOPOSoccerExcepcion;
 import util.RegistroErrores;
+import java.io.Serializable;
 
 /**
  * Un jugador de DOPOSoccer. Es una cabeza grande con un pie: camina, salta,
@@ -13,7 +14,9 @@ import util.RegistroErrores;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public class Jugador {
+public class Jugador implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** Radio de la cabeza (el tamaño del jugador). */
     public static final int RADIO_CABEZA = 29;
@@ -636,6 +639,15 @@ public class Jugador {
      */
     public void sumarPuntos(int cantidad) {
         puntos += cantidad;
+    }
+
+    /**
+     * Fija los puntos del jugador (se usa al recuperar el progreso guardado).
+     *
+     * @param cantidad puntos que tendrá, no puede ser negativa
+     */
+    public void setPuntos(int cantidad) {
+        puntos = Math.max(0, cantidad);
     }
 
     // consultas

@@ -1,5 +1,7 @@
 package domain;
 
+import java.io.Serializable;
+
 /**
  * Cada uno de los dos arcos. Sabe dónde está, si el balón ya entró (gol) y
  * hace que el balón rebote en el travesaño.
@@ -7,7 +9,9 @@ package domain;
  * @author César Daniel Morales Sandoval y Miguel de la Peña
  * @version Versión 1
  */
-public class Porteria {
+public class Porteria implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final String IZQUIERDA = "IZQUIERDA";
     public static final String DERECHA = "DERECHA";
