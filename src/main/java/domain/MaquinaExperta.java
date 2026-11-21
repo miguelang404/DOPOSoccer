@@ -16,7 +16,7 @@ public class MaquinaExperta extends Maquina {
     private static final double PROBABILIDAD_ERROR = 0.08;
 
     public MaquinaExperta(long semilla) {
-        super(EXPERTA, "Decide la acción según el estado del partido.", 3, semilla);
+        super(EXPERTA, "Decide la acción según el estado del partido.", 2, semilla);
     }
 
     @Override

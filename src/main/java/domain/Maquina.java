@@ -31,6 +31,9 @@ public abstract class Maquina implements Serializable {
     private final String descripcion;
     private final int reaccion;
     private final Random azar;
+    private double objetivoX;
+    private double tolerancia;
+    private boolean siguiendo;
     private int ticks;
 
     /**
@@ -57,7 +60,13 @@ public abstract class Maquina implements Serializable {
     public final void actuar(Partido partido, Jugador yo, Jugador rival) {
         ticks++;
         if (ticks % reaccion == 0) {
+            siguiendo = false;
             decidir(partido, yo, rival);
+        }
+        // Hacia dónde ir se decide cada cierto tiempo, pero al caminar se corrige en cada tick para
+        // no pasarse del objetivo ni quedarse temblando de un lado a otro.
+        if (siguiendo) {
+            caminarHacia(yo);
         }
     }
 
@@ -114,7 +123,14 @@ public abstract class Maquina implements Serializable {
 
     /** Camina hacia una x y se queda quieto cuando está cerca. */
     protected void irA(Jugador yo, double objetivo, double tolerancia) {
-        double dx = objetivo - yo.getX();
+        objetivoX = objetivo;
+        this.tolerancia = tolerancia;
+        siguiendo = true;
+        caminarHacia(yo);
+    }
+
+    private void caminarHacia(Jugador yo) {
+        double dx = objetivoX - yo.getX();
         if (Math.abs(dx) <= tolerancia) {
             yo.mover(0);
         } else {

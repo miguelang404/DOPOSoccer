@@ -420,4 +420,40 @@ class PartidoTest {
         assertEquals(130, j1.getVida(), 0.001);
         assertEquals(Partido.ESTADO_CUENTA, p.getEstado());
     }
+
+    // poder devuelto
+
+    @Test
+    void elRivalConPoderActivoDeberiaDevolverElTiroSinRecibirDaño() throws DOPOSoccerExcepcion {
+        Partido p = crear(Partido.TIPO_TIEMPO, 5);
+        pasarLaCuenta(p);
+        j1.cargarPoder(100);
+        j2.cargarPoder(100);
+        assertTrue(j1.activarPoder());
+        assertTrue(j2.activarPoder());
+        boolean devolvio = false;
+        for (int i = 0; i < 900 && !devolvio; i++) {
+            j1.mover(1);   // j1 camina hacia el balón hasta tocarlo y lanzar su poder
+            p.actualizar();
+            assertEquals(j2.getVidaMaxima(), j2.getVida(), 0.001, "el rival no debe recibir daño");
+            devolvio = p.getJugadorCargando() == j2;
+        }
+        assertTrue(devolvio, "el rival debería empezar a cargar su propio poder");
+        assertEquals(Jugador.EFECTO_NINGUNO, j2.getEfecto());
+    }
+
+    @Test
+    void elRivalSinPoderActivoDeberiaRecibirElDañoDelTiro() throws DOPOSoccerExcepcion {
+        Partido p = crear(Partido.TIPO_TIEMPO, 5);
+        pasarLaCuenta(p);
+        j1.cargarPoder(100);
+        assertTrue(j1.activarPoder());
+        boolean herido = false;
+        for (int i = 0; i < 900 && !herido; i++) {
+            j1.mover(1);
+            p.actualizar();
+            herido = j2.getVida() < j2.getVidaMaxima();
+        }
+        assertTrue(herido, "el tiro debería dañar a un rival sin poder activo");
+    }
 }

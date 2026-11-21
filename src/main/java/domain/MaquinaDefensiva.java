@@ -14,7 +14,7 @@ public class MaquinaDefensiva extends Maquina {
     private static final double MARGEN_CASA = 190;
 
     public MaquinaDefensiva(long semilla) {
-        super(DEFENSIVA, "Su prioridad es defender el arco.", 6, semilla);
+        super(DEFENSIVA, "Su prioridad es defender el arco.", 4, semilla);
     }
 
     @Override

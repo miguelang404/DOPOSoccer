@@ -91,7 +91,7 @@ jugador solo ve un mensaje amable.
 
 ## Pruebas
 
-Tenemos 130 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
+Tenemos 132 pruebas de unidad en `src/test/java/domain`. Cubren la cancha, el balón, los arcos, el marcador, el jugador,
 el partido, los poderes, las máquinas y la clase `Juego`, incluyendo la vida, el daño, los efectos, el aturdimiento y las mejoras, y los
 casos en los que algo debe fallar (minutos fuera de rango, un idioma que no existe, empezar contra la máquina sin perfil, abrir un archivo dañado,
 mejorar sin puntos suficientes, etc.). También se prueba cada perfil de máquina, guardar y abrir una partida y

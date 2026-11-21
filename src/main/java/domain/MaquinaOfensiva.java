@@ -12,7 +12,7 @@ public class MaquinaOfensiva extends Maquina {
     private static final long serialVersionUID = 1L;
 
     public MaquinaOfensiva(long semilla) {
-        super(OFENSIVA, "Su prioridad es anotar.", 6, semilla);
+        super(OFENSIVA, "Su prioridad es anotar.", 4, semilla);
     }
 
     @Override

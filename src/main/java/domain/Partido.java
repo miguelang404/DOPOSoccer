@@ -201,22 +201,33 @@ public class Partido implements Serializable {
             return;
         }
         if (lanzadorPoder != null && jugador != lanzadorPoder && !balon.getEfecto().isEmpty()) {
-            // Un tiro de poder alcanzó al rival: recibe el daño y el efecto de ese poder.
             Jugador atacante = lanzadorPoder;
             lanzadorPoder = null;
-            atacante.getPersonaje().getPoder().golpear(this, atacante, jugador);
-            balon.terminarEfecto();
+            if (jugador.isPoderActivo() && jugador.puedeActuar() && jugadorCargando == null) {
+                // El rival también tenía el poder activo: devuelve el tiro. No recibe daño ni efecto,
+                // el balón se queda con él y empieza a cargar su propio poder.
+                empezarCarga(jugador);
+            } else {
+                // Un tiro de poder alcanzó al rival: recibe el daño y el efecto de ese poder.
+                atacante.getPersonaje().getPoder().golpear(this, atacante, jugador);
+                balon.terminarEfecto();
+            }
         } else if (jugador.isPoderActivo() && jugadorCargando == null) {
             // Con el poder activo, al tocar el balón no sale disparado de una vez:
             // primero se pone delante de la frente (o del pie, según el poder) y ahí se carga el tiro.
-            jugadorCargando = jugador;
-            ticksCargando = 0;
-            balon.setVelocidad(0, 0);
-            balon.setEfecto(jugador.getPersonaje().getPoder().getCodigo(), TICKS_CARGA_PODER + 5);
+            empezarCarga(jugador);
         } else {
             balon.terminarEfecto();   // chocar con un jugador acaba el poder
             lanzadorPoder = null;
         }
+    }
+
+    /** El jugador empieza a cargar su poder con el balón (ver cargarTiroDePoder). */
+    private void empezarCarga(Jugador jugador) {
+        jugadorCargando = jugador;
+        ticksCargando = 0;
+        balon.setVelocidad(0, 0);
+        balon.setEfecto(jugador.getPersonaje().getPoder().getCodigo(), TICKS_CARGA_PODER + 5);
     }
 
     /**

@@ -210,11 +210,11 @@ abstract class PantallaBase extends JPanel {
         g.setColor(Estilo.mezclar(base, -0.55));
         g.fill(new RoundRectangle2D.Double(x, y + 5, w, cara + 2, h * 0.5, h * 0.5));
         Estilo.panel(g, x, y + hundir, w, cara, h * 0.5, base, Estilo.mezclar(base, -0.5));
-        float tam = (float) (h * 0.46);
-        Font f = Estilo.fuente(tam);
+        // El texto se achica solo si no cabe, dejando un margen a cada lado dentro del botón.
+        Font f = Estilo.ajustar(g, Estilo.fuente((float) (h * 0.42)), texto, w - 32);
         g.setFont(f);
         double tw = Estilo.ancho(g, f, texto);
-        double ty = y + hundir + cara / 2 + tam * 0.36;
+        double ty = y + hundir + cara / 2 + f.getSize2D() * 0.36;
         g.setColor(activo ? Color.WHITE : new Color(0xDD, 0xE1, 0xEA));
         g.drawString(texto, (float) (x + (w - tw) / 2), (float) ty);
     }
