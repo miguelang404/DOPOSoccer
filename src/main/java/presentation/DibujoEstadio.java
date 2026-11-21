@@ -170,7 +170,6 @@ final class DibujoEstadio {
         // Líneas de la cancha
         g.setColor(new Color(255, 255, 255, 150));
         g.setStroke(new BasicStroke(3f));
-        double yc = Cancha.SUELO + 8;
         g.setColor(new Color(255, 255, 255, 120));
         g.draw(new Line2D.Double(0, y0 + 14, w, y0 + 14));
     }

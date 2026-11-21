@@ -2,7 +2,6 @@ package presentation;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.RoundRectangle2D;
 
 /**
  * Pantalla donde se elige cómo jugar: jugador contra jugador o contra la máquina

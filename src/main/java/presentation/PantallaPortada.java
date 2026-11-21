@@ -30,8 +30,6 @@ class PantallaPortada extends PantallaBase {
         double suelo = Cancha.SUELO;
 
         // Dos jugadores de adorno, mirando al centro, y un balón que rebota entre ellos.
-        double rebote = Math.abs(Math.sin(t * 0.045));
-        double bolaY = suelo - 22 - rebote * 150;
         DibujoPersonaje.dibujarGrande(g, 175, suelo - 88, suelo, "COREA", false, 1, 0, "AURA_AZUL", t);
         DibujoPersonaje.dibujarGrande(g, 825, suelo - 88, suelo, "EEUU", false, -1, 0, "RAYO", t);
 

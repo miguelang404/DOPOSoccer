@@ -68,7 +68,6 @@ class PantallaPartido extends PantallaBase {
     private boolean poder1Previo;
     private boolean poder2Previo;
     private boolean efectoPrevio;
-    private double vyPrevia;
     private boolean poderPresionado1;
     private boolean poderPresionado2;
     private boolean confirmandoSalida;
